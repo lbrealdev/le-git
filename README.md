@@ -36,14 +36,43 @@ git checkout -f <branch_name>
 
 ### Git config
 
-Setting your username in Git:
+Setting your Git username for every repository on your computer:
 ```
 git config --global user.name "Your Name"
 ```
-
-Set an email address in Git:
+Confirm that you have set the Git username correctly `global config`:
 ```
-git config --global user.email "yourmail@gmail.com"
+git config --global user.name
+```
+
+Setting your email address for every repository on your computer:
+```
+git config --global user.email "email@example.com"
+```
+
+Confirm that you have set the email address correctly in Git `global config`:
+```
+git config --global user.email
+```
+
+Setting your Git username for a single repository:
+```
+git config user.name "Your Name"
+```
+
+Confirm that you have set the Git username correctly `single repository`:
+```
+git config user.name
+```
+
+Setting your email address for a single repository:
+```
+git config user.email "email@example.com"
+```
+
+Confirm that you have set the Git username correctly `single repository`:
+```
+git config --global user.email
 ```
 
 Edit global config:
