@@ -36,6 +36,8 @@ git checkout -f <branch_name>
 
 ### Git config
 
+#### global config repositories
+
 Setting your Git username for every repository on your computer:
 ```
 git config --global user.name "Your Name"
@@ -54,6 +56,8 @@ Confirm that you have set the email address correctly in Git `global config`:
 ```
 git config --global user.email
 ```
+
+#### single config repository
 
 Setting your Git username for a single repository:
 ```
