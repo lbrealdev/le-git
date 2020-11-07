@@ -23,6 +23,11 @@ List branch names:
 git branch --list
 ```
 
+Create a new branch:
+```
+git branch <newbranchname>
+```
+
 Change branch:
 ```
 git checkout <branch_name>
