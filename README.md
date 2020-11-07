@@ -25,7 +25,7 @@ git branch --list
 
 Create a new branch:
 ```
-git branch <newbranchname>
+git branch <branch_name>
 ```
 
 Change branch:
