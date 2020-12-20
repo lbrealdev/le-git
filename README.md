@@ -81,7 +81,7 @@ git config user.email "email@example.com"
 
 Confirm that you have set the Git username correctly `single repository`:
 ```
-git config --global user.email
+git config user.email
 ```
 
 Edit global config:
