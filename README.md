@@ -62,6 +62,11 @@ Confirm that you have set the email address correctly in Git `global config`:
 git config --global user.email
 ```
 
+Edit global repository config:
+```
+git config --global --edit
+```
+
 #### single config repository
 
 Setting your Git username for a single repository:
@@ -84,7 +89,7 @@ Confirm that you have set the Git username correctly `single repository`:
 git config user.email
 ```
 
-Edit global config:
+Edit single repository config:
 ```
-git config --global --edit
+git config --edit
 ```
