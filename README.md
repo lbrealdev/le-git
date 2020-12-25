@@ -20,7 +20,7 @@ git branch -a
 
 List branch names:
 ```
-git branch --list
+git branch -l
 ```
 
 Create a new branch:
