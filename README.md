@@ -7,7 +7,7 @@ This document explains how to use everyday git commands
 
 
 
-### Git branch
+### git branch
 Show the current branch context:
 ```
 git branch
@@ -39,7 +39,7 @@ git checkout -f <branch_name>
 ```
 
 
-### Git config
+### git config
 
 #### global config repositories
 
@@ -92,4 +92,15 @@ git config user.email
 Edit single repository config:
 ```
 git config --edit
+```
+
+### git rm
+Remove files from the working tree and from the index:
+```
+git rm -f $file
+```
+
+Remove a directory from the working tree:
+```
+git rm -r $dir
 ```
