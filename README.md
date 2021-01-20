@@ -3,9 +3,11 @@ This document explains how to use everyday git commands
 
 
 
-
-
-
+### git status
+Show the working tree status:
+```
+git status
+```
 
 ### git branch
 Show the current branch context:
