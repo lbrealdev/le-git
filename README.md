@@ -8,6 +8,10 @@ Show the working tree status:
 ```
 git status
 ```
+Show the branch and tracking info in short-format:
+```
+git status -bs
+```
 
 ### git branch
 Show the current branch context:
