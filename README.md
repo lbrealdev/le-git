@@ -1,9 +1,9 @@
 # git
+
 This document explains how to use everyday git commands
 
-
-
 ### git status
+
 Show the working tree status:
 ```
 git status
@@ -14,6 +14,7 @@ git status -bs
 ```
 
 ### git branch
+
 Show the current branch context:
 ```
 git branch
@@ -31,21 +32,31 @@ git branch -l
 
 Create a new branch:
 ```
-git branch <branch_name>
+git branch -m <new_branch>
 ```
 
 Change branch:
 ```
-git checkout <branch_name>
+git checkout <other_branch>
 ```
 
 Force change branch:
 ```
-git checkout -f <branch_name>
+git checkout -f <other_branch>
 ```
 
 
 ### git config
+
+List your global `git` configuration:
+```
+git config --global -l
+```
+
+List your local `git` configuration:
+```
+git config --local -l
+```
 
 #### global config repositories
 
@@ -101,12 +112,13 @@ git config --edit
 ```
 
 ### git rm
+
 Remove files from the working tree and from the index:
 ```
-git rm -f $file
+git rm -f <file>
 ```
 
 Remove a directory from the working tree:
 ```
-git rm -r $dir
+git rm -r <dir>
 ```
