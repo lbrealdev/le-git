@@ -1,6 +1,6 @@
-# git
+# le-git
 
-This document explains how to use everyday git commands
+This document contains **le-git** `(legit)` that means "Let's Explain Git and Github".
 
 ### git status
 
