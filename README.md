@@ -111,6 +111,10 @@ Edit single repository config:
 git config --edit
 ```
 
+### git add
+
+    // Add content
+
 ### git rm
 
 Remove files from the working tree and from the index:
@@ -121,4 +125,16 @@ git rm -f <file>
 Remove a directory from the working tree:
 ```
 git rm -r <dir>
+```
+
+### git remote
+
+Show the location configured:
+```
+git remote -v
+```
+
+Update location:
+```
+git remote set-url origin <new-github-repo-url>
 ```
