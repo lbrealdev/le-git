@@ -32,8 +32,6 @@ git branch -l
 
 #### Create new branch
 
-Run the following commands to create a new branch.
-
 To create a new branch and switch to it at same time, run the following command:
 ```
 git checkout -b <branch-name>
