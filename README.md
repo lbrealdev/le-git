@@ -30,10 +30,21 @@ List branch names:
 git branch -l
 ```
 
-Create a new branch:
+#### Create new branch
+
+Run the following commands to create a new branch.
+
+To create a new branch and switch to it at same time, run the following command:
 ```
-git branch -m <new_branch>
+git checkout -b <branch-name>
 ```
+
+Once the new branch is created, push it
+```shell
+git push -u origin <branch-name>
+```
+
+### git checkout
 
 Change branch:
 ```
@@ -44,7 +55,6 @@ Force change branch:
 ```
 git checkout -f <other_branch>
 ```
-
 
 ### git config
 
@@ -138,3 +148,10 @@ Update location:
 ```
 git remote set-url origin <new-github-repo-url>
 ```
+
+### git log
+
+Show commit logs with pretty output:
+```shell
+git lon --oneline
+``` 
