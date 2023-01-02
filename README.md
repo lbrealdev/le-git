@@ -30,16 +30,28 @@ List branch names:
 git branch -l
 ```
 
-#### Create new branch
+#### Create a branch
 
 To create a new branch and switch to it at same time, run the following command:
 ```shell
 git checkout -b <branch-name>
 ```
 
-Once the new branch is created, push it
+Once the new branch is created, push it:
 ```shell
 git push -u origin <branch-name>
+```
+
+#### Delete a branch
+
+Delete a branch remotely:
+```shell
+git push -d origin <branch-name>
+```
+
+Once the branch has been deleted remotely, delete it locally:
+```shell
+git branch -D <branch-name>
 ```
 
 ### git checkout
