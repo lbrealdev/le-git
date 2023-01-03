@@ -165,3 +165,20 @@ Show commit logs with pretty output:
 ```shell
 git lon --oneline
 ``` 
+
+### git commit
+
+#### Undo a commit
+
+If you have not pushed your changes to remote, run follow steps:
+
+List most recent commits with nice formatting to identify unwanted commits:
+```shell
+git log --oneline
+```
+
+Once identified, run this command to undo this commit:
+```shell
+git reset HEAD~1
+```
+
