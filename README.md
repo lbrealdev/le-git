@@ -163,7 +163,7 @@ git remote set-url origin <new-github-repo-url>
 
 Show commit logs with pretty output:
 ```shell
-git lon --oneline
+git log --oneline
 ``` 
 
 ### git commit
