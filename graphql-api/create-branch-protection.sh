@@ -20,7 +20,7 @@ function gh_graphql_repository_id() {
 
 function gh_graphql_branch_protection() {
   gh_graphql_repository_id
-  gh api graphql -F repositoryId="$repository_id" -F branchPattern="feat/**" -f query='
+  gh api graphql -F repositoryId="$repository_id" -F branchPattern="main" -f query='
   mutation ($repositoryId: ID!, $branchPattern: String!) {
     createBranchProtectionRule(input: {
         allowsDeletions: false
