@@ -37,3 +37,36 @@ Modify line 4 of the script in the arguments of the repository graphql object wi
 ./branch-protection-rule.sh
 ```
 
+#### Notes
+
+The `restrictsPushes` input field only works for organization repositories.
+
+
+### Queries
+
+Queries are structured like this:
+
+```graphql
+query {
+  JSON-OBJECT-TO-RETURN
+}
+```
+
+
+### Mutations
+
+Mutations are structured like this:
+
+```graphql
+mutation {
+  MUTATION-NAME(input: {MUTATION-NAME-INPUT!}) {
+    MUTATION-NAME-PAYLOAD
+  }
+}
+```
+
+Source: [Forming calls with GraphQL](https://docs.github.com/en/graphql/guides/forming-calls-with-graphql)
+
+
+
+[Github GraphQL API](https://docs.github.com/en/graphql/reference)

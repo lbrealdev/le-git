@@ -34,9 +34,16 @@ function gh_graphql_branch_protection() {
         requiredApprovingReviewCount: 1
         requiresCodeOwnerReviews: false
         requiresStatusChecks: true
+        requiresStrictStatusChecks: true
         restrictsReviewDismissals: false
+        requiresConversationResolution: false
+        requiresCommitSignatures: false
     }) {
         branchProtectionRule {
+            creator {
+              login
+              url
+            }
             allowsDeletions
             allowsForcePushes
             blocksCreations
@@ -47,7 +54,10 @@ function gh_graphql_branch_protection() {
             requiredApprovingReviewCount
             requiresCodeOwnerReviews
             requiresStatusChecks
+            requiresStrictStatusChecks
             restrictsReviewDismissals
+            requiresConversationResolution
+            requiresCommitSignatures
         }
     }
   }'
