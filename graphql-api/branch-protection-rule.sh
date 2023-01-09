@@ -4,7 +4,7 @@ set -e
 
 gh api graphql -f query='{
     repository(owner:"owner", name:"repository") {
-        branchProtectionRules(first:1)  {
+        branchProtectionRules(first:100)  {
             nodes {
                 allowsDeletions,
                 allowsForcePushes,
