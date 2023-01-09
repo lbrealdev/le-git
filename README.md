@@ -1,5 +1,10 @@
 # le-git
 
+<!-- TOC -->
+
+- [graphql-api](https://github.com/lbrealdev/le-git/tree/master/graphql-api)
+- [github-actions](https://github.com/lbrealdev/le-git/tree/master/graphql-api)
+
 This document contains **le-git** `(legit)` that means "Let's Explain Git and Github". This is my own public documentation about git and github where I make random updates to one topic or another about the two tools
 
 ### git status
@@ -167,6 +172,17 @@ git log --oneline
 ``` 
 
 ### git commit
+
+#### Empty commit
+Empty commit to trigger CI via github actions:
+```
+git commit --allow-empty -m "actions: trigger CI"
+```
+
+Push empty commit to activate CI:
+```
+git push
+```
 
 #### Undo a commit
 
