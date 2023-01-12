@@ -2,27 +2,39 @@
 
 set -euo pipefail
 
-GITHUB_OWNER="lbrealdev"
 GITHUB_REPOSITORY="$1"
 
-#function gh_api_repository_id() {
-#  repository_id=$(gh api -H "Accept: application/vnd.github+json" "/repos/${GITHUB_OWNER}/${GITHUB_REPOSITORY}" | jq -r '.node_id')
-#}
-
-function gh_graphql_repository_id() {
-  repository_id=$(gh api graphql -F owner="$GITHUB_OWNER" -F repo="$GITHUB_REPOSITORY" -f query='
-  query GetRepositoryId($owner: String!, $repo: String!) {
-    repository(owner: $owner, name: $repo) {
-        id
-    }
-  }' | jq -r '.data.repository.id')
+# Get the currently authenticated user.
+function gh_graphql_owner() {
+  GITHUB_OWNER=$(
+  gh api graphql -f query='
+    query {
+      viewer {
+        login
+      }
+    }' | jq -r '.data.viewer.login'
+  )
 }
 
+# Get global node id from repository.
+function gh_graphql_repository_id() {
+  gh_graphql_owner
+  REPOSITORY_ID=$(
+  gh api graphql -F owner="$GITHUB_OWNER" -F repo="$GITHUB_REPOSITORY" -f query='
+    query GetRepositoryId($owner: String!, $repo: String!) {
+      repository(owner: $owner, name: $repo) {
+        id
+      }
+    }' | jq -r '.data.repository.id'
+  )
+}
+
+# Create the branch protection rule.
 function gh_graphql_branch_protection() {
   gh_graphql_repository_id
-  gh api graphql -F repositoryId="$repository_id" -F branchPattern="main" -f query='
-  mutation ($repositoryId: ID!, $branchPattern: String!) {
-    createBranchProtectionRule(input: {
+  gh api graphql -F repositoryId="$REPOSITORY_ID" -F branchPattern="main" -f query='
+    mutation CreateBranchProtection($repositoryId: ID!, $branchPattern: String!) {
+      createBranchProtectionRule(input: {
         allowsDeletions: false
         allowsForcePushes: false
         blocksCreations: true
@@ -38,29 +50,15 @@ function gh_graphql_branch_protection() {
         restrictsReviewDismissals: false
         requiresConversationResolution: false
         requiresCommitSignatures: false
-    }) {
+      }) {
         branchProtectionRule {
-            creator {
-              login
-              url
-            }
-            allowsDeletions
-            allowsForcePushes
-            blocksCreations
-            dismissesStaleReviews
-            isAdminEnforced
-            pattern
-            requiresApprovingReviews
-            requiredApprovingReviewCount
-            requiresCodeOwnerReviews
-            requiresStatusChecks
-            requiresStrictStatusChecks
-            restrictsReviewDismissals
-            requiresConversationResolution
-            requiresCommitSignatures
+          creator { login, url }
+          allowsDeletions
+          blocksCreations
+          pattern
         }
-    }
-  }'
+      }
+    }'
 }
 
 gh_graphql_branch_protection
