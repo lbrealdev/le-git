@@ -9,32 +9,19 @@ gh version
 
 Follow the instructions from that repository to install the [Github CLI](https://github.com/cli/cli).
 
-Once installed, authenticate against github, using your PAT (Personal Access Token), run the following command:
+Once installed, authenticate against github, run the following command:
 ```shell
-gh auth login --with-token < token.txt
+echo "$YOUR_GITHUB_PAT" | gh auth login --with-token
 ```
->
->Create your token in your github configuration panel, then save it to a file, there are other ways to do it, at the end the --with-token argument reads a file where this token is
->
->
 
 Make sure you are connected via gh cli correctly, run:
 ```shell
 gh auth status
 ```
 
-Modify line 4 of the script in the arguments of the repository graphql object with your github owner and the name of the repository, once done execute:
-
-```grapgql
-{
-    repository(owner:"owner", name:"repository") {
-        // ...
-    }
-}
-```
-
+Run this script to get authenticated user information:
 ```shell
-./branch-protection-rule.sh
+./graphql-user-info.sh
 ```
 
 #### Notes
@@ -68,5 +55,7 @@ mutation {
 Source: [Forming calls with GraphQL](https://docs.github.com/en/graphql/guides/forming-calls-with-graphql)
 
 
+Docs: [Github GraphQL API](https://docs.github.com/en/graphql/reference)
 
-[Github GraphQL API](https://docs.github.com/en/graphql/reference)
+
+Try [Github GraphQL Explorer](https://docs.github.com/en/graphql/overview/explorer)

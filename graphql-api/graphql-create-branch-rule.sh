@@ -5,7 +5,7 @@ set -euo pipefail
 GITHUB_REPOSITORY="$1"
 
 # Get the currently authenticated user.
-function gh_graphql_owner() {
+function gh_graphql_get_owner() {
   GITHUB_OWNER=$(
   gh api graphql -f query='
     query {
@@ -17,8 +17,8 @@ function gh_graphql_owner() {
 }
 
 # Get global node id from repository.
-function gh_graphql_repository_id() {
-  gh_graphql_owner
+function gh_graphql_get_repository_id() {
+  gh_graphql_get_owner
   REPOSITORY_ID=$(
   gh api graphql -F owner="$GITHUB_OWNER" -F repo="$GITHUB_REPOSITORY" -f query='
     query GetRepositoryId($owner: String!, $repo: String!) {
@@ -30,8 +30,8 @@ function gh_graphql_repository_id() {
 }
 
 # Create the branch protection rule.
-function gh_graphql_branch_protection() {
-  gh_graphql_repository_id
+function gh_graphql_create_branch_protection() {
+  gh_graphql_get_repository_id
   gh api graphql -F repositoryId="$REPOSITORY_ID" -F branchPattern="main" -f query='
     mutation CreateBranchProtection($repositoryId: ID!, $branchPattern: String!) {
       createBranchProtectionRule(input: {
@@ -61,4 +61,4 @@ function gh_graphql_branch_protection() {
     }'
 }
 
-gh_graphql_branch_protection
+gh_graphql_create_branch_protection
