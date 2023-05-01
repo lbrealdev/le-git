@@ -3,7 +3,7 @@
 <!-- TOC -->
 
 - [graphql-api](https://github.com/lbrealdev/le-git/tree/master/graphql-api)
-- [github-actions](https://github.com/lbrealdev/le-git/tree/master/graphql-api)
+- [github-actions](https://github.com/lbrealdev/le-git/tree/master/github-actions)
 
 This document contains **le-git** `(legit)` that means "Let's Explain Git and Github". This is my own public documentation about git and github where I make random updates to one topic or another about the two tools
 
