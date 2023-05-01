@@ -1,4 +1,4 @@
-# GraphQL API
+# GitHub GraphQL API
 
 #### Use
 
