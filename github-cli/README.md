@@ -2,7 +2,7 @@
 
 ### Install gh on Linux
 
-Download binary from github:
+Download binary from [github repository](https://github.com/cli/cli):
 ```shell
 curl -s -f -L "https://github.com/cli/cli/releases/download/v2.28.0/gh_2.28.0_linux_amd64.tar.gz" -o gh_2.28.0_linux_amd64.tar.gz
 ```
