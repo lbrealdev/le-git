@@ -1,6 +1,6 @@
-# Github Actions - Self-hosted runners
+# Github Actions - self-hosted runners
 
-Initiatives and solutions for self-hosted runners from Github Actions.
+// to do
 
 ### Running scripts before or after a job
 
