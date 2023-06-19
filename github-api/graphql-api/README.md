@@ -1,5 +1,7 @@
 # GitHub GraphQL API
 
+[GitHub GraphQL API documentation](https://docs.github.com/en/graphql)
+
 #### Use
 
 To use graphQL API for github, first you need to have installed `gh cli`:
