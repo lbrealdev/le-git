@@ -6,7 +6,7 @@ This document contains **le-git** `(legit)` that means "Let's Explain Git and Gi
 
 - [GitHub CLI](https://github.com/lbrealdev/le-git/tree/master/github-cli)
 - [GitHub Actions](https://github.com/lbrealdev/le-git/tree/master/github-actions)
-- [GitHub GraphQL API](https://github.com/lbrealdev/le-git/tree/master/graphql-api)
+- [GitHub APIs](https://github.com/lbrealdev/le-git/tree/master/github-api)
 - [Github Authentication](https://github.com/lbrealdev/le-git/blob/master/github-auth/README.md)
 
 ### git status
