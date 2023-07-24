@@ -25,7 +25,7 @@ id_ed25519.pub
 id_ed25519
 ```
 
-The `id_ed25519.pub` is your public key, this is the key that must be defined in your **Github Settings** - [SSH and GPG keys](https://github.com/settings/keys).
+The `id_ed25519.pub` is your public key, this is the key that must be defined in your **[Github Settings / SSH and GPG keys](https://github.com/settings/keys)**.
 
 The `id_ed25519` is your private key, once generated, you should not take any action on it, just keep it safe.
 
@@ -51,7 +51,7 @@ Within the Keys panel, click in [New SSH key](https://github.com/settings/ssh/ne
 - In the `Title` field add a name for your SSH key, I recommend something similar to this:
 
 >
->      Github SSH Authentication Key
+>      Github SSH Au Key
 >
 
 - In the `Key Type` field, select `Authentication Key`, which is the default value.
