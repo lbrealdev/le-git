@@ -34,7 +34,7 @@ Once the new SSH keys are generated, you can add them to your Github account in 
 - [Web Broser](https://docs.github.com/en/authentication/connecting-to-github-with-ssh/adding-a-new-ssh-key-to-your-github-account?tool=webui)
 - [GitHub CLI](https://docs.github.com/en/authentication/connecting-to-github-with-ssh/adding-a-new-ssh-key-to-your-github-account?tool=cli)
 
-#### Web Browser
+### Add SSH keys via Web Browser
 
 Go to [SSH and GPG keys](https://github.com/settings/profile) in Github Settings panel:
 
@@ -67,7 +67,11 @@ Public key output example:
 ssh-ed25519 XXXXX your_email@example.com
 ```
 
-**NOTE:** In the Key field we always put the value of the public key, it's something a little confusing, but it's well documented.
+**NOTE:** In the `Key` field we always put the value of the public key, it's something a little confusing, but it's well documented.
+
+### Add SSH keys via GitHub CLI
+
+// to do
 
 **After adding a new SSH authentication key to your account on GitHub.com, you can reconfigure any local repositories to use SSH**. For more information, see [Managing remote repositories](https://docs.github.com/en/get-started/getting-started-with-git/managing-remote-repositories#switching-remote-urls-from-https-to-ssh).
 
