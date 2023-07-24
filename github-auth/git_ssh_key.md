@@ -2,8 +2,6 @@
 
 ### Set up SSH authentication Key
 
-After adding a new SSH authentication key to your account on GitHub.com, you can reconfigure any local repositories to use SSH. For more information, see [Managing remote repositories](https://docs.github.com/en/get-started/getting-started-with-git/managing-remote-repositories#switching-remote-urls-from-https-to-ssh).
-
 Generating a new SSH key:
 ```shell
 ssh-keygen -t ed25519 -C "your_email@example.com"
@@ -31,5 +29,45 @@ The `id_ed25519.pub` is your public key, this is the key that must be defined in
 
 The `id_ed25519` is your private key, once generated, you should not take any action on it, just keep it safe.
 
+Once the new SSH keys are generated, you can add them to your Github account in the following ways:
 
+- [Web Broser](https://docs.github.com/en/authentication/connecting-to-github-with-ssh/adding-a-new-ssh-key-to-your-github-account?tool=webui)
+- [GitHub CLI](https://docs.github.com/en/authentication/connecting-to-github-with-ssh/adding-a-new-ssh-key-to-your-github-account?tool=cli)
+
+#### Web Browser
+
+Go to [SSH and GPG keys](https://github.com/settings/profile) in Github Settings panel:
+
+
+![new-ssh-key](./docs/images/new-ssh-key.jpg)
+
+
+Within the Keys panel, click in [New SSH key](https://github.com/settings/ssh/new) to create a new key:
+
+
+![add-new-ssh-key](./docs/images/add-new-ssh-key.jpg)
+
+
+- In the `Title` field add a name for your SSH key, I recommend something similar to this:
+>
+>Github SSH Auth Key
+>
+
+- In the `Key Type` field, select `Authentication Key`, which is the default value.
+
+- In the `Key` field, add the value of `~/.ssh/id_ed25519.pub`, which is something like this:
+
+Run:
+```shell
+cat ~/.ssh/id_ed25519.pub
+```
+
+Public key output example:
+```txt
+ssh-ed25519 XXXXX your_email@example.com
+```
+
+**NOTE:** In the Key field we always put the value of the public key, it's something a little confusing, but it's well documented.
+
+**After adding a new SSH authentication key to your account on GitHub.com, you can reconfigure any local repositories to use SSH**. For more information, see [Managing remote repositories](https://docs.github.com/en/get-started/getting-started-with-git/managing-remote-repositories#switching-remote-urls-from-https-to-ssh).
 
