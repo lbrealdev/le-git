@@ -85,6 +85,8 @@ You can sign commits and tags locally, to give other people confidence about the
 
 #### Telling Git about your SSH key
 
+**This step is related to the following [github documentation](https://docs.github.com/en/authentication/managing-commit-signature-verification/telling-git-about-your-signing-key#telling-git-about-your-ssh-key)**
+
 Open terminal and run the following commands for setup git sign commit via SSH key:
 ```shell
 git config --global user.name "Your Name"
@@ -102,7 +104,9 @@ git config --global user.signingkey ~/.ssh/id_ed25519.pub
 ![git-ssh-sign-verify-warn](./docs/images/git-ssh-sign-verify-warn.jpg)
 
 >
->     If you currently have a git version less than 2.34 this type of commit signature verify (SSH) will not work, you must upgrade to version 2.34 or later.
+>     If you currently have a git version less than 2.34 this 
+>     type of commit signature verify (SSH) will not work, you
+>     must upgrade to version 2.34 or later.
 >
 
 After setting the Git configuration, you can list your defined variables with the following command:
