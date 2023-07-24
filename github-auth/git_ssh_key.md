@@ -1,22 +1,22 @@
-# Github Authentication - Github SSH Keys (Authentication Key)
+# GitHub Authentication - GitHub SSH Keys (Authentication Key)
 
-### Set up SSH authentication Key
+### Set up SSH keys
 
 Generating a new SSH key:
 ```shell
 ssh-keygen -t ed25519 -C "your_email@example.com"
 ```
-*NOTE:* You can press enter for all prompts or configure it your way.
+**NOTE:** You can press enter for all prompts or configure it your way.
 
 Add private key to the authentication agent:
 ```shell
 ssh-add
 ```
-*NOTE:* This step is a reference to that point in the [github documentation](https://docs.github.com/en/authentication/connecting-to-github-with-ssh/generating-a-new-ssh-key-and-adding-it-to-the-ssh-agent#adding-your-ssh-key-to-the-ssh-agent).
+**NOTE:** This step is a reference to that point in the [github documentation](https://docs.github.com/en/authentication/connecting-to-github-with-ssh/generating-a-new-ssh-key-and-adding-it-to-the-ssh-agent#adding-your-ssh-key-to-the-ssh-agent).
 
-Check your `.ssh` directory:
+Check your `~/.ssh` directory:
 ```shell
-ls -lthr $HOME/.ssh
+ls -lthr ~/.ssh
 ```
 
 You should see these two files:
@@ -34,9 +34,9 @@ Once the new SSH keys are generated, you can add them to your Github account in 
 - [Web Broser](https://docs.github.com/en/authentication/connecting-to-github-with-ssh/adding-a-new-ssh-key-to-your-github-account?tool=webui)
 - [GitHub CLI](https://docs.github.com/en/authentication/connecting-to-github-with-ssh/adding-a-new-ssh-key-to-your-github-account?tool=cli)
 
-### Add SSH keys via Web Browser
+### Add SSH keys via Web Browser - Authentication Key
 
-Go to [SSH and GPG keys](https://github.com/settings/profile) in Github Settings panel:
+Go to [SSH and GPG keys](https://github.com/settings/keys) in Github Settings panel:
 
 
 ![new-ssh-key](./docs/images/new-ssh-key.jpg)
@@ -45,12 +45,13 @@ Go to [SSH and GPG keys](https://github.com/settings/profile) in Github Settings
 Within the Keys panel, click in [New SSH key](https://github.com/settings/ssh/new) to create a new key:
 
 
-![add-new-ssh-key](./docs/images/add-new-ssh-key.jpg)
+![add-new-ssh-key-authentication-key](./docs/images/add-new-ssh-key-auth-key.jpg)
 
 
 - In the `Title` field add a name for your SSH key, I recommend something similar to this:
+
 >
->Github SSH Auth Key
+>      Github SSH Authentication Key
 >
 
 - In the `Key Type` field, select `Authentication Key`, which is the default value.
@@ -69,7 +70,7 @@ ssh-ed25519 XXXXX your_email@example.com
 
 **NOTE:** In the `Key` field we always put the value of the public key, it's something a little confusing, but it's well documented.
 
-### Add SSH keys via GitHub CLI
+### Add SSH keys via GitHub CLI - Authentication Key
 
 // to do
 
