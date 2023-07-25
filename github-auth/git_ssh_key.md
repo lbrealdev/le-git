@@ -84,4 +84,4 @@ ssh-ed25519 XXXXX your_email@example.com
 
 GitHub full guides:
 
-- [Github Authentication - SSH](https://docs.github.com/en/authentication/connecting-to-github-with-ssh/about-ssh)
+- [GitHub Authentication - SSH](https://docs.github.com/en/authentication/connecting-to-github-with-ssh/about-ssh)

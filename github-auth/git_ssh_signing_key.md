@@ -160,5 +160,6 @@ You should see the following tag in your web browser commit history:
 
 GitHub full guides:
 
-- [Github Authentication - SSH](https://docs.github.com/en/authentication/connecting-to-github-with-ssh/about-ssh)
-- [Github Authentication - Commit Signature](https://docs.github.com/en/authentication/managing-commit-signature-verification/about-commit-signature-verification)
+- [GitHub Authentication - SSH](https://docs.github.com/en/authentication/connecting-to-github-with-ssh/about-ssh)
+- [GitHub Authentication - Commit Signature](https://docs.github.com/en/authentication/managing-commit-signature-verification/about-commit-signature-verification)
+- [GitHub Repositories - Branches and Merges](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/configuring-pull-request-merges/about-merge-methods-on-github)
