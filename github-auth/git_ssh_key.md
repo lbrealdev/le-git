@@ -56,7 +56,7 @@ Within the Keys panel, click in [New SSH key](https://github.com/settings/ssh/ne
 - In the `Title` field add a name for your SSH key, I recommend something similar to this:
 
 >
->      Github SSH Au Key
+>      Github SSH Auth Key
 >
 
 - In the `Key Type` field, select `Authentication Key`, which is the default value.
