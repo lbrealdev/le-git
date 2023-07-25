@@ -1,7 +1,7 @@
 # GitHub Authentication - GitHub SSH Keys (Authentication Key)
 
-- [Set up SSH keys](https://github.com/lbrealdev/le-git/blob/master/github-auth/git_ssh_key.md)
-- [Add SSH key in GitHub account - Authentication Key](https://github.com/lbrealdev/le-git/blob/master/github-auth/git_ssh_signing_key.md#add-ssh-keys-in-github-account---signing-key)
+- [Set up SSH keys](https://github.com/lbrealdev/le-git/blob/master/github-auth/git_ssh_key.md#set-up-ssh-keys)
+- [Add SSH key in GitHub account - Authentication Key](https://github.com/lbrealdev/le-git/blob/master/github-auth/git_ssh_key.md#add-ssh-key-in-github-account---authentication-key)
 
 ## Set up SSH keys
 
