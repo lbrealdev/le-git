@@ -1,10 +1,10 @@
 # GitHub Authentication - GitHub SSH Keys (Signing Key)
 
-**NOTE:** If you came from the `[GitHub SSH Keys (Authentication Key)](https://github.com/lbrealdev/le-git/blob/master/github-auth/git_ssh_key.md) guide, proceed from the following step.
+**NOTE:** If you came from the [GitHub SSH Keys (Authentication Key)](https://github.com/lbrealdev/le-git/blob/master/github-auth/git_ssh_key.md) guide, proceed from the following step.
 
-// to do
+- [](https://github.com/lbrealdev/le-git/blob/master/github-auth/git_ssh_signing_key.md#add-ssh-keys-via-web-browser---signing-key)
 
-### Set up SSH keys
+## Set up SSH keys
 
 Generating a new SSH key:
 ```shell
@@ -38,7 +38,9 @@ Once the new SSH keys are generated, you can add them to your Github account in 
 - [Web Broser](https://docs.github.com/en/authentication/connecting-to-github-with-ssh/adding-a-new-ssh-key-to-your-github-account?tool=webui)
 - [GitHub CLI](https://docs.github.com/en/authentication/connecting-to-github-with-ssh/adding-a-new-ssh-key-to-your-github-account?tool=cli)
 
-### Add SSH keys via Web Browser - Signing Key
+## Add SSH keys in Github account - Signing Key
+
+### Using GitHub web browser
 
 Go to [SSH and GPG keys](https://github.com/settings/keys) in Github Settings panel:
 
@@ -74,7 +76,7 @@ ssh-ed25519 XXXXX your_email@example.com
 
 **NOTE:** In the `Key` field we always put the value of the public key, it's something a little confusing, but it's well documented.
 
-### Add SSH keys via GitHub CLI - Signing Key
+### Using GitHub CLI
 
 // to do
 
