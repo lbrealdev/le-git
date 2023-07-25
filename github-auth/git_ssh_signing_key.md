@@ -10,6 +10,8 @@
 
 - [Add SSH key in GitHub Account - Signing Key](https://github.com/lbrealdev/le-git/blob/master/github-auth/git_ssh_signing_key.md#add-ssh-key-in-github-account---signing-key)
 
+**NOTE:** *You can use your SSH key generated in the previous tutorial to sign commits.*
+
 ## Set up SSH keys
 
 Generating a new SSH key:
@@ -66,6 +68,8 @@ Within the Keys panel, click in [New SSH key](https://github.com/settings/ssh/ne
 >      Github SSH Signing Key
 >
 
+**NOTE:** This tip is optional, you can put it in the title you want, I just highlight the key type, since **Authetication Key** and **Signing Key** are different things within the Github authentication scopes.
+
 - In the `Key Type` field, select `Signing Key`.
 
 - In the `Key` field, add the value of `~/.ssh/id_ed25519.pub`, which is something like this:
@@ -93,7 +97,7 @@ You can sign commits and tags locally, to give other people confidence about the
 
 ### Telling Git about your SSH key
 
-**This step is related to the following [github documentation](https://docs.github.com/en/authentication/managing-commit-signature-verification/telling-git-about-your-signing-key#telling-git-about-your-ssh-key)**
+**This step is related to the following [github documentation](https://docs.github.com/en/authentication/managing-commit-signature-verification/telling-git-about-your-signing-key#telling-git-about-your-ssh-key)**.
 
 Open terminal and run the following commands for setup git sign commit via SSH key:
 ```shell
@@ -132,7 +136,7 @@ gpg.format=ssh
 
 ### Signing commits
 
-**This step is related to the following [github documentation](https://docs.github.com/en/authentication/managing-commit-signature-verification/signing-commits)**
+**This step is related to the following [github documentation](https://docs.github.com/en/authentication/managing-commit-signature-verification/signing-commits)**.
 
 You can sign commits locally using GPG, SSH, or S/MIME.
 
@@ -150,3 +154,6 @@ You should see the following tag in your web browser commit history:
 
 ![sign-commit-verified-tag](./docs/images/sign-commit-verified-tag.jpg)
 
+**NOTE:** It is important that your `user.name` and `user.email` are correctly configured, otherwise you will see the following tag when signing a commit:
+
+![sign-commit-unverified-tag](./docs/images/sign-commit-unverified-tag.jpg)
