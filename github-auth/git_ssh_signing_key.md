@@ -1,8 +1,14 @@
 # GitHub Authentication - GitHub SSH Keys (Signing Key)
 
+<!-- TOC -->
+
+- [Set up SSH keys](https://github.com/lbrealdev/le-git/blob/master/github-auth/git_ssh_signing_key.md#set-up-ssh-keys)
+- [Add SSH key in GitHub account - Signing Key](https://github.com/lbrealdev/le-git/blob/master/github-auth/git_ssh_signing_key.md#add-ssh-keys-in-github-account---signing-key)
+- [Commit Signature Verification](https://github.com/lbrealdev/le-git/blob/master/github-auth/git_ssh_signing_key.md#commit-signature-verification)
+
 **NOTE:** If you came from the [GitHub SSH Keys (Authentication Key)](https://github.com/lbrealdev/le-git/blob/master/github-auth/git_ssh_key.md) guide, proceed from the following step.
 
-- [](https://github.com/lbrealdev/le-git/blob/master/github-auth/git_ssh_signing_key.md#add-ssh-keys-via-web-browser---signing-key)
+- [Add SSH key in GitHub Account - Signing Key](https://github.com/lbrealdev/le-git/blob/master/github-auth/git_ssh_signing_key.md#add-ssh-keys-in-github-account---signing-key)
 
 ## Set up SSH keys
 
@@ -38,7 +44,7 @@ Once the new SSH keys are generated, you can add them to your Github account in 
 - [Web Broser](https://docs.github.com/en/authentication/connecting-to-github-with-ssh/adding-a-new-ssh-key-to-your-github-account?tool=webui)
 - [GitHub CLI](https://docs.github.com/en/authentication/connecting-to-github-with-ssh/adding-a-new-ssh-key-to-your-github-account?tool=cli)
 
-## Add SSH keys in Github account - Signing Key
+## Add SSH key in GitHub account - Signing Key
 
 ### Using GitHub web browser
 
@@ -81,11 +87,11 @@ ssh-ed25519 XXXXX your_email@example.com
 // to do
 
 
-### Commit Signature Verification
+## Commit Signature Verification
 
 You can sign commits and tags locally, to give other people confidence about the origin of a change you have made. If a commit or tag has a GPG, SSH, or S/MIME signature that is cryptographically verifiable, GitHub marks the commit or tag "Verified" or "Partially verified."
 
-#### Telling Git about your SSH key
+### Telling Git about your SSH key
 
 **This step is related to the following [github documentation](https://docs.github.com/en/authentication/managing-commit-signature-verification/telling-git-about-your-signing-key#telling-git-about-your-ssh-key)**
 
