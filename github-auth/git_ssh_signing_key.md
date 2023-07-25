@@ -88,8 +88,7 @@ ssh-ed25519 XXXXX your_email@example.com
 
 ### Using GitHub CLI
 
-// to do
-
+- [GitHub CLI guide](https://github.com/lbrealdev/le-git/tree/master/github-cli)
 
 ## Commit Signature Verification
 

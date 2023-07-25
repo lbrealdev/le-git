@@ -77,7 +77,7 @@ ssh-ed25519 XXXXX your_email@example.com
 
 ### Using GitHub CLI
 
-// to do
+- [GitHub CLI guide](https://github.com/lbrealdev/le-git/tree/master/github-cli)
 
 **After adding a new SSH authentication key to your account on GitHub.com, you can reconfigure any local repositories to use SSH**. For more information, see [Managing remote repositories](https://docs.github.com/en/get-started/getting-started-with-git/managing-remote-repositories#switching-remote-urls-from-https-to-ssh).
 
