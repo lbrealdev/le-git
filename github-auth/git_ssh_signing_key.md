@@ -140,10 +140,10 @@ To sign commits, run:
 ```shell
 git add .
 
-git commit -S -m "Your Message"
+git commit -S -m "YOUR_COMMIT_MESSAGE"
 
 # Short command
-git commit -a -S -m "Your Message"
+git commit -a -S -m "YOUR_COMMIT_MESSAGE"
 ```
 
 You should see the following tag in your web browser commit history:
