@@ -129,3 +129,24 @@ user.email=your_email@example.com
 user.signingkey=/path/to/.ssh/id_ed25519.pub
 gpg.format=ssh
 ```
+
+### Signing commits
+
+**This step is related to the following [github documentation](https://docs.github.com/en/authentication/managing-commit-signature-verification/signing-commits)**
+
+You can sign commits locally using GPG, SSH, or S/MIME.
+
+To sign commits, run:
+```shell
+git add .
+
+git commit -S -m "Your Message"
+
+# Short command
+git commit -a -S -m "Your Message"
+```
+
+You should see the following tag in your web browser commit history:
+
+![sign-commit-verified-tag](./docs/images/sign-commit-verified-tag.jpg)
+
