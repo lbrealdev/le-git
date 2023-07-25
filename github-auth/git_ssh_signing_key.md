@@ -39,12 +39,12 @@ The `id_ed25519.pub` is your public key, this is the key that must be defined in
 
 The `id_ed25519` is your private key, once generated, you should not take any action on it, just keep it safe.
 
+## Add SSH key in GitHub account - Signing Key
+
 Once the new SSH keys are generated, you can add them to your Github account in the following ways:
 
 - [Web Broser](https://docs.github.com/en/authentication/connecting-to-github-with-ssh/adding-a-new-ssh-key-to-your-github-account?tool=webui)
 - [GitHub CLI](https://docs.github.com/en/authentication/connecting-to-github-with-ssh/adding-a-new-ssh-key-to-your-github-account?tool=cli)
-
-## Add SSH key in GitHub account - Signing Key
 
 ### Using GitHub web browser
 
