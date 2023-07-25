@@ -157,3 +157,8 @@ You should see the following tag in your web browser commit history:
 **NOTE:** It is important that your `user.name` and `user.email` are correctly configured, otherwise you will see the following tag when signing a commit:
 
 ![sign-commit-unverified-tag](./docs/images/sign-commit-unverified-tag.jpg)
+
+GitHub full guides:
+
+- [Github Authentication - SSH](https://docs.github.com/en/authentication/connecting-to-github-with-ssh/about-ssh)
+- [Github Authentication - Commit Signature](https://docs.github.com/en/authentication/managing-commit-signature-verification/about-commit-signature-verification)
