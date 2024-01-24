@@ -65,14 +65,19 @@ git branch -D <branch-name>
 
 ### git checkout
 
-Change branch:
+Switch branch:
 ```shell
-git checkout <other_branch>
+git checkout <branch-name>
 ```
 
-Force change branch:
+Switch branch even if the index or the working tree differs from `HEAD`:
 ```shell
-git checkout -f <other_branch>
+git checkout -f <branch-name>
+```
+
+Switch to `main` branch:
+```shell
+git checkout -
 ```
 
 ### git config
@@ -166,6 +171,11 @@ git remote -v
 Update location:
 ```shell
 git remote set-url origin <new-github-repo-url>
+```
+
+Deletes all stale remote-tracking branches:
+```shell
+git remote prune origin
 ```
 
 ### git log
