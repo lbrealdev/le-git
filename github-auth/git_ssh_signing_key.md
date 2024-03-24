@@ -107,6 +107,9 @@ git config --global user.email "your_email@example.com"
 # Configure Git to use SSH to sign commits and tags.
 git config --global gpg.format ssh
 
+# To sign all commits by default
+git config --global commit.gpgsign true
+
 # To set your SSH signing key in Git.
 git config --global user.signingkey ~/.ssh/id_ed25519.pub
 ```
