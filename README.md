@@ -8,8 +8,9 @@ This document contains **le-git** `(legit)` that means "Let's Explain Git and Gi
 - [GitHub Actions](https://github.com/lbrealdev/le-git/tree/master/github-actions)
 - [GitHub APIs](https://github.com/lbrealdev/le-git/tree/master/github-api)
 - [Github Authentication](https://github.com/lbrealdev/le-git/blob/master/github-auth/README.md)
-    - [SSH Authentication Key](https://github.com/lbrealdev/le-git/blob/master/github-auth/git_ssh_key.md)
-    - [SSH Signing Key](https://github.com/lbrealdev/le-git/blob/master/github-auth/git_ssh_signing_key.md)
+    - [SSH Authentication Key](https://github.com/lbrealdev/le-git/blob/master/github-auth/github_ssh_key.md)
+    - [SSH Signing Key](https://github.com/lbrealdev/le-git/blob/master/github-auth/github_ssh_signing_key.md)
+    - [GPG Key](https://github.com/lbrealdev/le-git/blob/master/github-auth/github_gpg_key.md)
 
 ### git status
 
@@ -147,7 +148,15 @@ git config --edit
 
 ### git add
 
-    // Add content
+Add files:
+```shell
+git add .
+```
+
+Add files recursively:
+```shell
+git add -A
+```
 
 ### git rm
 
@@ -158,7 +167,7 @@ git rm -f <file>
 
 Remove a directory from the working tree:
 ```shell
-git rm -r <dir>
+git rm -r <directory>
 ```
 
 ### git remote
@@ -183,13 +192,19 @@ git remote prune origin
 Show commit logs with pretty output:
 ```shell
 git log --oneline
-``` 
+```
+
+Get the hash of the last commit:
+```shell
+git log -1 --format="%H"
+```
 
 ### git commit
 
 #### Empty commit
+
 Empty commit to trigger CI via github actions:
-```
+```shell
 git commit --allow-empty -m "actions: trigger CI"
 ```
 
