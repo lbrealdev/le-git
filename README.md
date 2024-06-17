@@ -147,7 +147,15 @@ git config --edit
 
 ### git add
 
-    // Add content
+Add files:
+```shell
+git add .
+```
+
+Add files recursively:
+```shell
+git add -A
+```
 
 ### git rm
 
