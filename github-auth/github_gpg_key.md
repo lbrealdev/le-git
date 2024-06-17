@@ -32,3 +32,4 @@ fatal: failed to write commit object
 Source:
 
 - [GitHub - Generating a new GPG key](https://docs.github.com/en/authentication/managing-commit-signature-verification/generating-a-new-gpg-key)
+- [GitHub - Associating an email with your GPG key](https://docs.github.com/en/authentication/managing-commit-signature-verification/associating-an-email-with-your-gpg-key)
