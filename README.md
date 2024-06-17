@@ -183,7 +183,12 @@ git remote prune origin
 Show commit logs with pretty output:
 ```shell
 git log --oneline
-``` 
+```
+
+Get the hash of the last commit:
+```shell
+git log -1 --format="%H"
+```
 
 ### git commit
 
