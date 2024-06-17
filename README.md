@@ -167,7 +167,7 @@ git rm -f <file>
 
 Remove a directory from the working tree:
 ```shell
-git rm -r <dir>
+git rm -r <directory>
 ```
 
 ### git remote
@@ -202,8 +202,9 @@ git log -1 --format="%H"
 ### git commit
 
 #### Empty commit
+
 Empty commit to trigger CI via github actions:
-```
+```shell
 git commit --allow-empty -m "actions: trigger CI"
 ```
 
