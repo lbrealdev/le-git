@@ -1,4 +1,4 @@
-# Github Actions - self-hosted runners
+# Github Actions - Self-hosted runners
 
 // to do
 

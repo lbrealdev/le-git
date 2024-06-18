@@ -1,4 +1,4 @@
-# Github Action - runners
+# Github Actions - Runners
 
 Sources:
 
