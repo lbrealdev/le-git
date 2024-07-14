@@ -25,5 +25,5 @@ Run this script to create or delete branch protection rules:
 ```shell
 export GITHUB_AUTH_TOKEN="<github-token>"
 
-./rest-branch-rule.sh <create|delete> <owner>/<repository-name> main
+./rest-branch-rule.sh <create|delete> <owner>/<repository-name> <branches>
 ```
