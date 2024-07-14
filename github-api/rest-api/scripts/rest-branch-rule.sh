@@ -2,12 +2,18 @@
 
 set -euo pipefail
 
-ACTION="$1"
+if [ "$#" -ne 3 ]; then
+  echo "Usage: ./$(basename "$0") <create|delete> <owner>/<repository-name> <branches>"
+  exit 1
+fi
+
 GITHUB_API_URL="https://api.github.com"
+GITHUB_TOKEN="$GITHUB_AUTH_TOKEN"
+
+ACTION="$1"
 GITHUB_OWNER=$(echo "$2" | cut -d'/' -f1)
 GITHUB_REPO=$(echo "$2" | cut -d'/' -f2)
 GITHUB_BRANCH="$3"
-GITHUB_TOKEN="$GITHUB_AUTH_TOKEN"
 
 # Create branch protection.
 function create_branch_protection() {
@@ -49,14 +55,20 @@ function delete_branch_protection() {
     "$GITHUB_API_URL/repos/$GITHUB_OWNER/$repo/branches/$branch/protection"
 }
 
+IFS="," read -r -a branches <<< "$GITHUB_BRANCH"
+
 if [ "$ACTION" == "create" ]; then
   echo "Creating branch protection rule ..."
   sleep 2
-  create_branch_protection "$GITHUB_REPO" "$GITHUB_BRANCH"
+  for branch in "${branches[@]}"; do
+    create_branch_protection "$GITHUB_REPO" "$branch"
+  done
 elif [ "$ACTION" == "delete" ]; then
   echo "Deleting branch protection rule ..."
   sleep 2
-  delete_branch_protection "$GITHUB_REPO" "$GITHUB_BRANCH"
+  for branch in "${branches[@]}"; do
+    delete_branch_protection "$GITHUB_REPO" "$branch"
+  done
 else
-  echo "Invalid option!"
+  echo "Invalid option: $ACTION. Use 'create' or 'delete'."
 fi
