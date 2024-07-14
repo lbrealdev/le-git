@@ -27,4 +27,4 @@ export GITHUB_AUTH_TOKEN="<github-token>"
 
 ./rest-branch-rule.sh <create|delete> <owner>/<repository-name> <branches>
 ```
-**NOTE**: The last argument `<branches>` can be passed that's way `main` or this `"main,develop,..."`
+**NOTE**: The last argument `<branches>` can be passed like `main` or `"main,develop"`.
