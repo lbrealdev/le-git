@@ -27,4 +27,4 @@ function gh_graphql_get_repository() {
   }'
 }
 
-graphql_get_repository "$@"
+gh_graphql_get_repository "$@"
