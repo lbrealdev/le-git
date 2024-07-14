@@ -12,3 +12,7 @@ List branch protection rules:
 ./rest-list-branch-rule.sh <repository-name>
 ```
 
+Create a branch protection:
+```shell
+./rest-create-branch-rule.sh <repository-name> main
+```
