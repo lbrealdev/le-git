@@ -2,6 +2,11 @@
 
 ### Usage
 
+Go to scripts directory:
+```shell
+cd github-api/graphql-api/scripts/
+```
+
 Get authenticated user info:
 ```shell
 ./graphql-user-info.sh
