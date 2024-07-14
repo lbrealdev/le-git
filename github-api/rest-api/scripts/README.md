@@ -21,6 +21,7 @@ Create a branch protection:
 
 The `rest-*.sh` is curl, so I understand this won't be a problem.
 
+Run this script to create or delete branch protection rules:
 ```shell
-./rest-create-branch-rule.sh <owner>/<repository-name> main
+./rest-create-branch-rule.sh <create|delete> <owner>/<repository-name> main
 ```
