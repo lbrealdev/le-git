@@ -2,7 +2,7 @@
 
 ### Usage
 
-`gh-rest-*.sh` scripts use `gh cli` in the background, ensure either have `gh` installed.
+The `gh-rest-*.sh` scripts use `gh cli` behind the scenes, make sure you have `gh` installed.
 
 Go to scripts directory:
 ```shell
@@ -18,6 +18,8 @@ Create a branch protection:
 ```shell
 ./gh-rest-create-branch-rule.sh <repository-name> main
 ```
+
+The `rest-*.sh` is curl, so I understand this won't be a problem.
 
 ```shell
 ./rest-create-branch-rule.sh <owner>/<repository-name> main
