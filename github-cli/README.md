@@ -30,7 +30,7 @@ rm -rf /usr/local/bin/gh
 ```
 
 
-## Install with Arkade
+## Install GH with Arkade
 
 Run `arkade get` and follow the instructions:
 ```shell

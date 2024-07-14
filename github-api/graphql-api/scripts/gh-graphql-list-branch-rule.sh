@@ -16,7 +16,7 @@ function gh_graphql_get_owner() {
 
 # Get branch protection rules from repository.
 function gh_graphq_get_branch_protection() {
-  gh_graphql_owner
+  gh_graphql_get_owner
   gh api graphql -F owner="$GITHUB_OWNER" -F repository="${1}" \
     -f query='
     query GetBranchProtectionRules($owner:String!, $repository:String!) {
