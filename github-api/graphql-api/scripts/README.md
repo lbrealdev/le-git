@@ -12,6 +12,11 @@ Get authenticated user info:
 ./gh-graphql-user-metadata.sh
 ```
 
+Get legacy and next global ID:
+```shell
+./graphql-user-next-id.sh <login>
+```
+
 Get repository metadata:
 ```shell
 ./gh-graphql-repo-metadata.sh <owner>/<repository-name>
