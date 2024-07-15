@@ -9,12 +9,12 @@ cd github-api/graphql-api/scripts/
 
 Get authenticated user info:
 ```shell
-./gh-graphql-user-info.sh
+./gh-graphql-user-metadata.sh
 ```
 
 Get repository metadata:
 ```shell
-./gh-graphql-repository-info.sh <repository-name>
+./gh-graphql-repo-metadata.sh <owner>/<repository-name>
 ```
 
 List branch protection rules:
