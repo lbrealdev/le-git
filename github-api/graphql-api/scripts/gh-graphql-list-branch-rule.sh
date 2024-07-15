@@ -2,22 +2,19 @@
 
 set -euo pipefail
 
-# Get the currently authenticated user.
-function gh_graphql_get_owner() {
-  GITHUB_OWNER=$(
-  gh api graphql -f query='
-    query {
-      viewer {
-        login
-      }
-    }' | jq -r '.data.viewer.login'
-  )
-}
+if [ "$#" -ne 1 ]; then
+  echo "Usage: ./$(basename "$0") <owner>/<repository-name>"
+  exit 1
+fi
+
+GITHUB_OWNER=$(echo "$1" | cut -d'/' -f1)
+GITHUB_REPO=$(echo "$1" | cut -d'/' -f2)
 
 # Get branch protection rules from repository.
 function gh_graphq_get_branch_protection() {
-  gh_graphql_get_owner
-  gh api graphql -F owner="$GITHUB_OWNER" -F repository="${1}" \
+  repo="$1"
+
+  gh api graphql -F owner="$GITHUB_OWNER" -F repository="$repo" \
     -f query='
     query GetBranchProtectionRules($owner:String!, $repository:String!) {
       repository(owner: $owner, name: $repository) {
@@ -39,4 +36,4 @@ function gh_graphq_get_branch_protection() {
     }'
 }
 
-gh_graphq_get_branch_protection "$@"
+gh_graphq_get_branch_protection "$GITHUB_REPO"

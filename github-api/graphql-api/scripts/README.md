@@ -24,5 +24,5 @@ List branch protection rules:
 
 Create a branch protection:
 ```shell
-./graphql-create-branch-rule.sh <repository-name>
+./graphql-create-branch-rule.sh <owner>/<repository-name>
 ```
