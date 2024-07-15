@@ -9,20 +9,25 @@ cd github-api/graphql-api/scripts/
 
 Get authenticated user info:
 ```shell
-./graphql-user-info.sh
+./gh-graphql-user-metadata.sh
+```
+
+Get legacy and next global ID:
+```shell
+./graphql-user-next-id.sh <login>
 ```
 
 Get repository metadata:
 ```shell
-./graphql-repository-info.sh <repository-name>
+./gh-graphql-repo-metadata.sh <owner>/<repository-name>
 ```
 
 List branch protection rules:
 ```shell
-./graphql-list-branch-rule.sh <repository-name>
+./gh-graphql-list-branch-rule.sh <owner>/<repository-name>
 ```
 
 Create a branch protection:
 ```shell
-./graphql-create-branch-rule.sh <repository-name>
+./gh-graphql-create-branch-rule.sh <owner>/<repository-name> <branch>
 ```

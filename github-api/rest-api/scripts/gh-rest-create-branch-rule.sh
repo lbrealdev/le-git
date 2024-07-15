@@ -2,15 +2,14 @@
 
 set -euo pipefail
 
-# Get the currently authenticated user.
-function gh_api_get_owner() {
-  GITHUB_OWNER=$(
-  gh api \
-    -H "Accept: application/vnd.github+json" \
-    -H "X-GitHub-Api-Version: 2022-11-28" \
-    /user | jq -r '.login'
-  )
-}
+if [ "$#" -ne 2 ]; then
+  echo "Usage: ./$(basename "$0") <owner>/<repository-name> <branch>"
+  exit 1
+fi
+
+GITHUB_OWNER=$(echo "$1" | cut -d'/' -f1)
+GITHUB_REPO=$(echo "$1" | cut -d'/' -f2)
+BRANCH="$2"
 
 # Create branch protection.
 function gh_api_create_branch_protection() {
@@ -35,6 +34,4 @@ function gh_api_create_branch_protection() {
     -F "allow_fork_syncing=true"
 }
 
-
-gh_api_get_owner
-gh_api_create_branch_protection "$@"
+gh_api_create_branch_protection "$GITHUB_REPO" "$BRANCH"

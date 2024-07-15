@@ -17,3 +17,7 @@
 #### GitHub alternatives
 
 - https://sr.ht/
+
+#### Git In
+
+- [Git into Open Source](https://www.git-in.to/)

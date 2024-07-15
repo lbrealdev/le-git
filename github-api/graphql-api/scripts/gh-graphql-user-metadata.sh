@@ -11,6 +11,7 @@ function gh_graphql_get_owner() {
         login
         url
         bio
+        id
       }
     }'
 }
