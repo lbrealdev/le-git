@@ -32,7 +32,7 @@ Create a branch protection:
 ./gh-graphql-create-branch-rule.sh <owner>/<repository-name> <branch>
 ```
 
-# GitHub signing commit with GraphQL API
+# Signing commit with GitHub GraphQL API
 
 ### Usage
 
@@ -45,3 +45,18 @@ export GITHUB_AUTH_TOKEN="github-token"
 ./graphql-sign-commit.sh -r "<owner>/<repository-name>" -p "<file|directory>"
 ```
 **NOTE**: Run this script inside the repository you want to upload new files.
+
+### Demo
+
+1 - Create new repository.
+
+2 - Clone new repository and move the files you want to upload to the new repository, it can be a file or directory, but must be within the repository directory.
+
+3 - Export your GITHUB_AUTH_TOKEN environment variable.
+
+4 - Run the script:
+```shell
+./graphql-sign-commit.sh -r "gh-user/repo-to-upload" -p ".github"
+```
+
+**NOTE**: You can pass one or more files and directories as `-p "pyproject.toml, main.py"` or `-p ".github, tests"`.
