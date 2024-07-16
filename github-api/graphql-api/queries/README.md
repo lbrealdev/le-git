@@ -40,3 +40,9 @@ Variables:
 - [Data Fetcher - GraphQL to JSON Body Converter](https://datafetcher.com/graphql-json-body-converter)
 - [Transform Tools - GraphQL to Introspection JSON](https://transform.tools/graphql-to-introspection-json)
 - [JSON Lint - Format & Validate JSON](https://www.jsolint.com/)
+
+### Important things in GitHub GraphQL API
+
+- [createCommitOnBranch](https://docs.github.com/en/graphql/reference/mutations#createcommitonbranch)
+- [Commit](https://docs.github.com/en/graphql/reference/objects#commit)
+- [TreeEntry](https://docs.github.com/en/graphql/reference/objects#treeentry)
