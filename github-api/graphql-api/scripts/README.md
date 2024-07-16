@@ -31,3 +31,17 @@ Create a branch protection:
 ```shell
 ./gh-graphql-create-branch-rule.sh <owner>/<repository-name> <branch>
 ```
+
+# GitHub signing commit with GraphQL API
+
+### Usage
+
+Export GitHub PAT:
+```shell
+export GITHUB_AUTH_TOKEN="github-token"
+```
+
+```shell
+./graphql-sign-commit.sh -r "<owner>/<repository-name>" -p "<file|directory>"
+```
+**NOTE**: Run this script inside the repository you want to upload new files.
