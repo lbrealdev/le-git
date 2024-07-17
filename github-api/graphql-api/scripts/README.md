@@ -41,7 +41,7 @@ Export GitHub PAT:
 export GITHUB_AUTH_TOKEN="github-token"
 ```
 
-Run graphql-sign-commit:
+Run `graphql-sign-commit.sh`:
 ```shell
 ./graphql-sign-commit.sh -r "<owner>/<repository-name>" -p "<file|directory>"
 ```
