@@ -61,7 +61,7 @@ export GITHUB_AUTH_TOKEN="gha_****"
 
 4 - Run the script:
 ```shell
-./graphql-sign-commit.sh -r "gh-user/repo-to-upload" -p ".github"
+./graphql-sign-commit.sh -r "gh-user/repo-to-upload" -p ".github/workflows"
 ```
 
 **NOTE**: You can pass one or more files and directories as `-p "pyproject.toml, main.py"` or `-p ".github, tests"`.
