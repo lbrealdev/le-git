@@ -52,7 +52,10 @@ export GITHUB_AUTH_TOKEN="github-token"
 
 2 - Clone new repository and move the files you want to upload to the new repository, it can be a file or directory, but must be within the repository directory.
 
-3 - Export your GITHUB_AUTH_TOKEN environment variable.
+3 - Export `GITHUB_AUTH_TOKEN`:
+```shell
+export GITHUB_AUTH_TOKEN="gha_****"
+```
 
 4 - Run the script:
 ```shell

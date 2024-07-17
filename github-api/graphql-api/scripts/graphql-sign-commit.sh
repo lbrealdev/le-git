@@ -83,7 +83,12 @@ graphql_request='{
         url
         additions
         changedFilesIfAvailable
+        deletions
+        oid
         committedDate
+        signature {
+          isValid
+        }
       }
     }
   }",
@@ -107,16 +112,16 @@ graphql_request='{
   }
 }'
 
-# Debug graphql request json
-echo "$graphql_request"
+# Debug request json
+#echo "$graphql_request"
 
 if [[ -e "request.json" ]]; then
-  echo -e "\nCleaning up old request file ..."
+  echo "Cleaning up old request file ..."
   rm -rf request.json
   sleep 2
 fi
 
-echo "Generating new graphql request json file ..."
+echo "Generating new request json file ..."
 sleep 2
 echo "$graphql_request" > request.json
 
