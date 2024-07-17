@@ -2,6 +2,11 @@
 
 ### Usage
 
+Export GITHUB_TOKEN:
+```shell
+export GITHUB_AUTH_TOKEN="<github-token>"
+```
+
 Upload files using **GitHub graphql API**:
 ```shell
 ./sign-commit-upload.sh -r "owner/repository" -u empty-dir/

@@ -41,7 +41,7 @@ Variables:
 - [Transform Tools - GraphQL to Introspection JSON](https://transform.tools/graphql-to-introspection-json)
 - [JSON Lint - Format & Validate JSON](https://www.jsolint.com/)
 
-### Important things in GitHub GraphQL API
+### Good GitHub GraphQL API links
 
 - [createCommitOnBranch](https://docs.github.com/en/graphql/reference/mutations#createcommitonbranch)
     - [Commit Signing](https://docs.github.com/en/graphql/reference/mutations#commit-signing)
