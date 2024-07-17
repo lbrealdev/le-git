@@ -44,7 +44,9 @@ Variables:
 ### Important things in GitHub GraphQL API
 
 - [createCommitOnBranch](https://docs.github.com/en/graphql/reference/mutations#createcommitonbranch)
-    - [Authorship](https://docs.github.com/en/graphql/reference/mutations#authorship)
     - [Commit Signing](https://docs.github.com/en/graphql/reference/mutations#commit-signing)
+    - [CreateCommitOnBranchInput](https://docs.github.com/en/graphql/reference/input-objects#createcommitonbranchinput)
+    - [FileChanges](https://docs.github.com/pt/graphql/reference/input-objects#filechanges)
+    - [Authorship](https://docs.github.com/en/graphql/reference/mutations#authorship)
 - [Commit](https://docs.github.com/en/graphql/reference/objects#commit)
 - [TreeEntry](https://docs.github.com/en/graphql/reference/objects#treeentry)
