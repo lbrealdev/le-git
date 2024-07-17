@@ -1,20 +1,18 @@
 #!/bin/bash
 
-# Inicializando variáveis
 repo=""
 paths=()
 file_paths=()
 
 GITHUB_URL="https://github.com"
 
-# Parse script arguments
-while getopts ":r:f:" flag
+while getopts ":r:u:" flag
 do
     case "${flag}" in
       r) 
         repo=${OPTARG}
         ;;
-      f)
+      u)
         paths+=("${OPTARG}")
         ;;
       \?)
