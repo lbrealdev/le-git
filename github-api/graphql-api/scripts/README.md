@@ -41,10 +41,12 @@ Export GitHub PAT:
 export GITHUB_AUTH_TOKEN="github-token"
 ```
 
+Run graphql-sign-commit:
 ```shell
 ./graphql-sign-commit.sh -r "<owner>/<repository-name>" -p "<file|directory>"
 ```
 **NOTE**: Run this script inside the repository you want to upload new files.
+
 
 ### Demo
 
