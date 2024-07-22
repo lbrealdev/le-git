@@ -21,7 +21,3 @@
 #### Git In
 
 - [Git into Open Source](https://www.git-in.to/)
-
-#### Secure Git Guide
-
-- [Secure Git Guide](https://secure-git.guide/)
