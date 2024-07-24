@@ -8,6 +8,12 @@ if [ "$#" -lt 1 ]; then
 fi
 
 GITHUB_ORG="$1"
+
+if [ -z "${GITHUB_AUTH_TOKEN:-}" ]; then
+  echo "Error: GITHUB_AUTH_TOKEN environment variable is not set." >&2
+  exit 1
+fi
+
 GITHUB_TOKEN="$GITHUB_AUTH_TOKEN"
 
 graphql_schema='query {
