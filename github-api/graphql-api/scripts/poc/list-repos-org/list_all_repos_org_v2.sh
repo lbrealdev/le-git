@@ -48,13 +48,19 @@ while $has_next_page; do
     -H "Accept: application/vnd.github+json" \
     -H "Authorization: Bearer $GITHUB_TOKEN" \
     https://api.github.com/graphql \
-    -d "{ \"query\": \"$graphql_schema\"}")
+    -d "{ \"query\": \"$graphql_schema\"}" | \
+    jq -r 'if .data.organization == null then "false" else .data end')
 
-  repos=$(echo "$query" | jq -r .data.organization.repositories.nodes[].name)
-  echo "$repos"
+  if [ "$query" != "false" ]; then
+    repos=$(echo "$query" | jq -r .organization.repositories.nodes[].name)
+    echo "$repos"
+  else
+    echo "Error: the organization \"$GITHUB_ORG\" was not found."
+    exit 1
+  fi
 
-  page_cursor=$(echo "$query" | jq -r .data.organization.repositories.pageInfo.endCursor)
-  has_next_page=$(echo "$query" | jq -r .data.organization.repositories.pageInfo.hasNextPage)
+  page_cursor=$(echo "$query" | jq -r .organization.repositories.pageInfo.endCursor)
+  has_next_page=$(echo "$query" | jq -r .organization.repositories.pageInfo.hasNextPage)
 
   if [ "$has_next_page" == "false" ]; then
     break
