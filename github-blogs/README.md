@@ -21,3 +21,7 @@
 #### Git In
 
 - [Git into Open Source](https://www.git-in.to/)
+
+#### GitHub Actions
+
+- [GitHub Actions: Faster Python runs with cached virtual environments](https://adamj.eu/tech/2023/11/02/github-actions-faster-python-virtual-environments/)
