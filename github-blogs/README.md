@@ -22,6 +22,6 @@
 
 - [Git into Open Source](https://www.git-in.to/)
 
-#### Secure Git Guide
+#### GitHub Actions
 
-- [Secure Git Guide](https://secure-git.guide/)
+- [GitHub Actions: Faster Python runs with cached virtual environments](https://adamj.eu/tech/2023/11/02/github-actions-faster-python-virtual-environments/)
