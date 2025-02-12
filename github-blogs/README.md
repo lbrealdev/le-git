@@ -24,3 +24,7 @@
 #### Git In
 
 - [Git into Open Source](https://www.git-in.to/)
+
+#### Git Guide
+
+- [Beej's Guide to Git](https://beej.us/guide/bggit/)
