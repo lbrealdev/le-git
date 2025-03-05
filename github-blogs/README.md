@@ -28,3 +28,7 @@
 #### Git Guide
 
 - [Beej's Guide to Git](https://beej.us/guide/bggit/)
+
+#### Blogs
+
+- [Prefer tee -a, not >>, in CI](https://huonw.github.io/blog/2025/02/ci-tee/)
