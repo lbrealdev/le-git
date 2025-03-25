@@ -32,3 +32,10 @@
 #### Blogs
 
 - [Prefer tee -a, not >>, in CI](https://huonw.github.io/blog/2025/02/ci-tee/)
+
+
+### GitHub Awesome
+
+- [Awesome CodeQL](https://github.com/advanced-security/awesome-codeql)
+- [Awesome Dependabot](https://github.com/advanced-security/awesome-dependabot)
+- [Awesome Secret Scanning](https://github.com/advanced-security/awesome-secret-scanning)

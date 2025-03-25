@@ -29,9 +29,14 @@ done
 
 input_path="${paths[*]-null}"
 
+echo "$input_path"
+
+exit 1
+
 # Check input path
-evalute_input_path() {
-    local input=$1
+function check_input_path() {
+    local input="$1"
+
     if [[ -f "$input" ]]; then
       file_paths+=("$input")
     elif [[ -d "$input" ]]; then
@@ -43,7 +48,7 @@ evalute_input_path() {
 
 if [ "$input_path" != "null" ]; then
   for path in "${paths[@]}"; do
-    evalute_input_path "$path"
+    check_input_path "$path"
   done
   
   changed_files_json=""
@@ -72,6 +77,7 @@ if [ "$input_path" != "null" ]; then
           }"
 else
   echo "Empty!!"
+  exit 1
 fi
 
 branch="main"

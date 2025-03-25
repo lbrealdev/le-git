@@ -1,5 +1,7 @@
 # GitHub Security
 
+- [GitHub Advanced Security](https://github.com/advanced-security)
+
 ### GitHub Hardening Guides
 
 - [Secure Git Guide](https://secure-git.guide/)

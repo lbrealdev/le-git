@@ -29,8 +29,9 @@ done
 input_path="${paths[*]-null}"
 
 # Check input path
-evalute_input_path() {
-    local input=$1
+function evalute_input_path() {
+    local input="$1"
+
     if [[ -f "$input" ]]; then
       file_paths+=("$input")
     elif [[ -d "$input" ]]; then
@@ -67,6 +68,7 @@ if [ "$input_path" != "null" ]; then
           }"
 else
   echo "Empty!!"
+  exit 1
 fi
 
 branch="main"
