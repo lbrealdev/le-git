@@ -7,7 +7,7 @@ Download act prebuilt executable from release page:
 curl -fsSLo "act_Linux_x86_64.tar.gz" "https://github.com/nektos/act/releases/latest/download/act_Linux_x86_64.tar.gz"
 ```
 
-After the download is completed, use `tar` to extract the binary:
+After the download is completed, use tar to extract the binary:
 ```shell
 tar -xf act_Linux_x86_64.tar.gz
 ```
@@ -17,12 +17,12 @@ Copy the binary to the execution directory:
 cp act ~/.local/bin
 ```
 
-Get `act` version:
+Get act version:
 ```shell
 act --version
 ```
 
-Config file:
+Get `actrc` config file:
 ```shell
 cat ~/.config/act/actrc
 ```
