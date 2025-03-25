@@ -1,18 +1,34 @@
 # act - Run your GitHub Actions locally
 
-- https://nektosact.com/
-- https://github.com/nektos/act
+## Installation
 
+Download act prebuilt executable from release page:
 ```shell
-curl -fsSL https://github.com/nektos/act/releases/latest/download/act_Linux_x86_64.tar.gz -o act_Linux_x86_64.tar.gz
+curl -fsSLo "act_Linux_x86_64.tar.gz" "https://github.com/nektos/act/releases/latest/download/act_Linux_x86_64.tar.gz"
+```
 
+After the download is completed, use `tar` to extract the binary:
+```shell
 tar -xf act_Linux_x86_64.tar.gz
+```
 
-sudo cp act /usr/local/bin
+Copy the binary to the execution directory:
+```shell
+cp act ~/.local/bin
+```
 
+Get `act` version:
+```shell
 act --version
 ```
 
-### Source
+Config file:
+```shell
+cat ~/.config/act/actrc
+```
 
+### Sources
+
+- https://nektosact.com/
+- https://github.com/nektos/act
 - https://nektosact.com/installation/index.html
