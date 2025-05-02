@@ -16,3 +16,15 @@ This document contains **le-git** `(legit)` that means "Let's Explain Git and Gi
 ## Tools
 
 - [Table Generator - Markdown](https://www.tablesgenerator.com/markdown_tables#)
+
+## Usage
+
+Run scripts using `just`:
+```shell
+just <mod> <recipe> <arg>
+```
+
+List recipe by modules:
+```shell
+just --list <mod>
+```
