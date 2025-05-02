@@ -8,5 +8,5 @@ set working-directory := 'scripts'
 @create-branch-rule branch:
   ./rest-branch-rule.sh create {{ owner }}/{{ repo }} {{ branch }}
 
-@update-repo src target *private:
-  ./rest-update-repo.sh {{ owner }}/{{ src }} {{ target }} {{ private }}
+@update-repo source target *private:
+  ./rest-update-repo.sh {{ owner }}/{{ source }} {{ target }} {{ private }}
