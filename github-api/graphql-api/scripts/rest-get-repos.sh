@@ -12,13 +12,13 @@ GITHUB_TOKEN="$GITHUB_AUTH_TOKEN"
 
 function gh_graphql_get_org_id() {
   QUERY="{ \"query\": \"{ organization(login: \\\"$GITHUB_LOGIN\\\") { id, login } }\" }"
-  
+
   GITHUB_ORG_LOGIN=$(curl -sL \
-  -H "Accept: application/vnd.github+json" \
-  -H "Authorization: Bearer $GITHUB_TOKEN" \
-  https://api.github.com/graphql \
-  -d "$QUERY"| \
-  jq -r '.data.organization.login' )
+    -H "Accept: application/vnd.github+json" \
+    -H "Authorization: Bearer $GITHUB_TOKEN" \
+    https://api.github.com/graphql \
+    -d "$QUERY" | \
+    jq -r '.data.organization.login')
 }
 
 function gh_graphql_fetch_repos() {
