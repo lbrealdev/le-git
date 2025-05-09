@@ -10,5 +10,8 @@ set working-directory := 'scripts'
 @delete-branch-rule target branch:
   ./rest-branch-rule.sh delete {{ owner }}/{{ target }} {{ branch }}
 
-@update-repo source target *private:
-  ./rest-update-repo.sh {{ owner }}/{{ source }} {{ target }} {{ private }}
+@update-repo target *private:
+  ./rest-update-repo.sh {{ target }} --private {{ private }}
+
+@update-repo-test target name description private *homepage:
+  ./rest-update-repo.sh {{ target }} {{ name }} {{ description }} {{ private }} {{ homepage }}
