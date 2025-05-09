@@ -13,7 +13,7 @@ This document contains **le-git** `(legit)` that means "Let's Explain Git and Gi
     - [GPG Key](https://github.com/lbrealdev/le-git/blob/master/github-auth/github_gpg_key.md)
 
 
-## Tools
+## Markdown Tools
 
 - [Table Generator - Markdown](https://www.tablesgenerator.com/markdown_tables#)
 
