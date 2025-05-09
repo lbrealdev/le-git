@@ -14,6 +14,8 @@
 ### GitHub Actions Tools
 
 - [act](https://github.com/lbrealdev/le-git/blob/master/github-actions/act.md)
+- [zizmor](https://github.com/lbrealdev/le-git/blob/master/github-actions/zizmor.md)
+- [wrkflw](https://github.com/lbrealdev/le-git/blob/master/github-actions/wrkflw.md)
 
 ### Blogs
 
