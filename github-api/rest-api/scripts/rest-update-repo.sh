@@ -34,12 +34,7 @@ GITHUB_TOKEN="$GITHUB_AUTH_TOKEN"
 # Initialize variables
 GITHUB_REPO_OWNER=""
 GITHUB_REPO_NAME=""
-GITHUB_REPO_NEW_NAME=""
-GITHUB_REPO_PRIVATE=""
-GITHUB_REPO_DESCRIPTION=""
-GITHUB_REPO_HOMEPAGE=""
 
-# Parse repository name
 # Supported repository name format
 # repository for the authenticated user: repo-name
 # repository from another login for the authenticated user: owner/repo-name
@@ -56,48 +51,41 @@ if [[ -z "$GITHUB_REPO_NAME" ]]; then
   usage
 fi
 
-while [[ "$#" -gt 0 ]]; do
-  case $1 in
-    --name)
-        if [ -n "$2" ] && [ "${2:0:1}" != "-" ]; then
-          GITHUB_REPO_NEW_NAME="$2"
-          shift 2
-        else
-          error_empty_argument "--name"
-        fi
-        ;;
-    --description)
-        if [ -n "$2" ] && [ "${2:0:1}" != "-" ]; then
-          GITHUB_REPO_DESCRIPTION="$2"
-          shift 2
-        else
-          error_empty_argument "--description"
-        fi
-        ;;
-    --private)
-        if [ -n "$2" ] && [ "${2:0:1}" != "-" ]; then
-          GITHUB_REPO_PRIVATE="$2"
-          shift 2
-        else
-          error_empty_argument "--private"
-        fi
-        ;;
-    --homepage)
-        if [ -n "$2" ] && [ "${2:0:1}" != "-" ]; then
-          GITHUB_REPO_HOMEPAGE="$2"
-          shift 2
-        else
-          error_empty_argument "--homepage"
-        fi
-        ;;
-    *) echo "Invalid argument: $1"; usage;;
-  esac
-done
+create_json_from_args() {
+    local json='{'
 
-if [ -z "$GITHUB_REPO_NEW_NAME" ] && [ -z "$GITHUB_REPO_DESCRIPTION" ] && [ -z "$GITHUB_REPO_PRIVATE" ] && [ -z "$GITHUB_REPO_HOMEPAGE" ]; then
+    local args=("$@")
+    local i=1  # Começa do segundo argumento (índice 1)
+
+    while [ $i -lt ${#args[@]} ]; do
+        case "${args[$i]}" in
+            --name)
+                json+="\"name\":\"${args[$((i+1))]}\""; i=$((i+2)) ;;
+            --description)
+                json+="\"description\":\"${args[$((i+1))]}\""; i=$((i+2)) ;;
+            --private)
+                json+="\"private\":${args[$((i+1))]}"; i=$((i+2)) ;;
+            --homepage)
+                json+="\"homepage\":\"${args[$((i+1))]}\""; i=$((i+2)) ;;
+            *)
+                echo "Unknown parameter passed: ${args[$i]}"; exit 1 ;;
+        esac
+
+        if [ $i -lt ${#args[@]} ]; then
+            json+=","
+        fi
+    done
+
+    json+='}'
+    echo "$json"
+}
+
+if [ $# -lt 2 ] || [ $(( $# % 2 )) -ne 0 ]; then
     echo "Error: At least one of --name, --description, --private, or --homepage must be provided."
     usage
 fi
+
+json_data=$(create_json_from_args "$GITHUB_REPO_NAME" "$@")
 
 function get_auth_user() {
   curl -sL \
@@ -128,12 +116,7 @@ function update_repository() {
     -H "Authorization: Bearer $GITHUB_TOKEN" \
     -H "X-GitHub-Api-Version: 2022-11-28" \
     "$GITHUB_API_URL/repos/$owner/$repo" \
-    -d "{
-         \"name\": \"$GITHUB_REPO_NEW_NAME\",
-         \"description\": \"$GITHUB_REPO_DESCRIPTION\",
-         \"homepage\": \"$GITHUB_REPO_HOMEPAGE\",
-         \"private\": \"$GITHUB_REPO_PRIVATE\"
-       }")
+    -d "$json_data")
 }
 
 echo "GitHub REST API - update repository"
