@@ -55,7 +55,7 @@ create_json_from_args() {
     local json='{'
 
     local args=("$@")
-    local i=1  # Começa do segundo argumento (índice 1)
+    local i=1
 
     while [ $i -lt ${#args[@]} ]; do
         case "${args[$i]}" in
