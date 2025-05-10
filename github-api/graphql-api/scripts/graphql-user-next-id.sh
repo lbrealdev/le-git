@@ -2,30 +2,32 @@
 
 set -euo pipefail
 
-if [ "$#" -ne 1 ]; then
-  echo "Usage: ./$(basename "$0") <login>"
-  exit 1
+usage() {
+    echo "Usage: $0 <login>"
+    exit 1
+}
+
+if [ "$#" -lt 1 ]; then
+  usage
 fi
 
-GITHUB_LOGIN="$1"
 GITHUB_TOKEN="$GITHUB_AUTH_TOKEN"
+GITHUB_API_URL="https://api.github.com/graphql"
+GRAPHQL_SCHEMA="{ \"query\": \"{ user(login: \\\"$1\\\") { id } }\" }"
 
 # Get Legacy Global ID for authenticated user.
 function gh_graphql_get_id() {
-  GRAPHQL="{ \"query\": \"{ user(login: \\\"$GITHUB_LOGIN\\\") { id } }\" }"
-  
+
   curl -sL \
     -H "Accept: application/vnd.github+json" \
     -H "Authorization: Bearer $GITHUB_TOKEN" \
-    https://api.github.com/graphql \
-    -d "$GRAPHQL" | \
+    "$GITHUB_API_URL" -d "$GRAPHQL_SCHEMA" | \
     jq -r '. | "Legacy Global ID: \(.data.user.id)"'
 }
 
 # Get Next Global ID for authenticated user.
 function gh_graphql_get_next_id() {
-  GRAPHQL="{ \"query\": \"{ user(login: \\\"$GITHUB_LOGIN\\\") { id } }\" }"
-  
+
   # To get Next-Global-ID
   # Use this Header:
   # "X-Github-Next-Global-ID: 1"
@@ -34,8 +36,7 @@ function gh_graphql_get_next_id() {
     -H "Accept: application/vnd.github+json" \
     -H "Authorization: Bearer $GITHUB_TOKEN" \
     -H "X-Github-Next-Global-ID: 1" \
-    https://api.github.com/graphql \
-    -d "$GRAPHQL" | \
+    "$GITHUB_API_URL" -d "$GRAPHQL_SCHEMA" | \
     jq -r '. | "Next Global ID: \(.data.user.id)"'
 }
 
