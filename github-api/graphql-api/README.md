@@ -1,9 +1,5 @@
 # GitHub GraphQL API
 
-[GitHub GraphQL API documentation](https://docs.github.com/en/graphql)
-
-#### Use
-
 To use graphQL API for github, first you need to have installed `gh cli`:
 ```shell
 gh version
@@ -26,11 +22,6 @@ Run this script to get authenticated user information:
 ./graphql-user-info.sh
 ```
 
-#### Notes
-
-The `restrictsPushes` input field only works for organization repositories.
-
-
 ### Queries
 
 Queries are structured like this:
@@ -41,6 +32,9 @@ query {
 }
 ```
 
+### Notes
+
+The `restrictsPushes` input field only works for organization repositories.
 
 ### Mutations
 
@@ -54,10 +48,10 @@ mutation {
 }
 ```
 
-Source: [Forming calls with GraphQL](https://docs.github.com/en/graphql/guides/forming-calls-with-graphql)
+## Related links
 
-
-Docs: [Github GraphQL API](https://docs.github.com/en/graphql/reference)
-
-
-Try [Github GraphQL Explorer](https://docs.github.com/en/graphql/overview/explorer)
+- [GitHub GraphQL API documentation](https://docs.github.com/en/graphql)
+- [Forming calls with GraphQL](https://docs.github.com/en/graphql/guides/forming-calls-with-graphql)
+- [Github GraphQL API reference](https://docs.github.com/en/graphql/reference)
+- [Github GraphQL Explorer](https://docs.github.com/en/graphql/overview/explorer)
+- []()

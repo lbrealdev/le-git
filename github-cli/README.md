@@ -40,3 +40,8 @@ arkade get gh
 #### You must be wondering what is arkade?
 
 [arkade - Open Source Marketplace For Developer Tools](https://github.com/alexellis/arkade)
+
+
+### Reletad links
+
+- [Exploring GitHub CLI: How to interact with GitHub’s GraphQL API endpoint](https://github.blog/developer-skills/github/exploring-github-cli-how-to-interact-with-githubs-graphql-api-endpoint/)

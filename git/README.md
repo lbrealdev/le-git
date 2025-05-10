@@ -15,6 +15,7 @@ git show $(git log -1 --format="%H")
 ### Links
 
 - [Oh My Git - An open source game about learning Git!](https://ohmygit.org/)
+- [Modern Git Commands and Features You Should Be Using](https://martinheinz.dev/blog/109)
 
 ## Git
 
