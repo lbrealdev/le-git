@@ -6,14 +6,8 @@
 set -euo pipefail
 
 usage() {
-    echo "Usage: $0 <repo-name> [--name <new-name>] [--description <description>] [--homepage <homepage>]"
-    exit 1
-}
-
-# Function to display error for empty argument
-error_empty_argument() {
-    echo "Error: Argument for $1 cannot be empty."
-    usage
+  echo "Usage: $0 <repo-name> [--name <new-name>] [--description <description>] [--homepage <homepage>]"
+  exit 1
 }
 
 log() {
@@ -35,57 +29,66 @@ GITHUB_TOKEN="$GITHUB_AUTH_TOKEN"
 GITHUB_REPO_OWNER=""
 GITHUB_REPO_NAME=""
 
-# Supported repository name format
-# repository for the authenticated user: repo-name
-# repository from another login for the authenticated user: owner/repo-name
+# Validate that both repository owner and name are provided.
+# This handles cases where the input format is invalid, such as "owner/" or "/repo".
 if [[ "$1" == */* ]]; then
-    IFS='/' read -r GITHUB_REPO_OWNER GITHUB_REPO_NAME <<< "$1"
+  IFS='/' read -r GITHUB_REPO_OWNER GITHUB_REPO_NAME <<< "$1"
+
+  if [[ -z "$GITHUB_REPO_OWNER" ]] || [[ -z "$GITHUB_REPO_NAME" ]]; then
+    echo "Error: Invalid repository format. Expected 'owner/repo'."
+    echo "Parsed values -> owner: '$GITHUB_REPO_OWNER', repo: '$GITHUB_REPO_NAME'"
+    usage
+  fi
 else
-    GITHUB_REPO_NAME="$1"
+  GITHUB_REPO_NAME="$1"
 fi
 
 shift
 
-if [[ -z "$GITHUB_REPO_NAME" ]]; then
-  echo "Error: Repository name must be provided."
+create_json_from_args() {
+  local json='{'
+
+  local args=("$@")
+  local i=0
+
+  while [ $i -lt ${#args[@]} ]; do
+      case "${args[$i]}" in
+          --name)
+              json+="\"name\":\"${args[$((i+1))]}\""; i=$((i+2)) ;;
+          --description)
+              json+="\"description\":\"${args[$((i+1))]}\""; i=$((i+2)) ;;
+          --private)
+              json+="\"private\":${args[$((i+1))]}"; i=$((i+2)) ;;
+          --homepage)
+              json+="\"homepage\":\"${args[$((i+1))]}\""; i=$((i+2)) ;;
+          *)
+              echo "${args[$i]}"; exit 1 ;;
+      esac
+
+      if [ $i -lt ${#args[@]} ]; then
+          json+=","
+      fi
+  done
+
+  json+='}'
+  echo "$json"
+}
+
+# Checks whether at least one argument was provided
+# and ensures the total number of arguments is even.
+if [ $# -lt 2 ] || [ $(( $# % 2 )) -ne 0 ]; then
+  echo "Error: At least one of --name, --description, --private, or --homepage must be provided."
   usage
 fi
 
-create_json_from_args() {
-    local json='{'
-
-    local args=("$@")
-    local i=1
-
-    while [ $i -lt ${#args[@]} ]; do
-        case "${args[$i]}" in
-            --name)
-                json+="\"name\":\"${args[$((i+1))]}\""; i=$((i+2)) ;;
-            --description)
-                json+="\"description\":\"${args[$((i+1))]}\""; i=$((i+2)) ;;
-            --private)
-                json+="\"private\":${args[$((i+1))]}"; i=$((i+2)) ;;
-            --homepage)
-                json+="\"homepage\":\"${args[$((i+1))]}\""; i=$((i+2)) ;;
-            *)
-                echo "Unknown parameter passed: ${args[$i]}"; exit 1 ;;
-        esac
-
-        if [ $i -lt ${#args[@]} ]; then
-            json+=","
-        fi
-    done
-
-    json+='}'
-    echo "$json"
-}
-
-if [ $# -lt 2 ] || [ $(( $# % 2 )) -ne 0 ]; then
-    echo "Error: At least one of --name, --description, --private, or --homepage must be provided."
-    usage
+# Parses supported flags and constructs the JSON payload accordingly.
+create_json=""
+if ! create_json=$(create_json_from_args "$@"); then
+  echo "Error: Invalid parameter passed. Supported flags are --name, --description, --private, and --homepage."
+  usage
 fi
 
-json_data=$(create_json_from_args "$GITHUB_REPO_NAME" "$@")
+json_data="$create_json"
 
 function get_auth_user() {
   curl -sL \
