@@ -14,7 +14,7 @@ tar -xf gh_2.73.0_linux_amd64.tar.gz
 
 Copy binary to your /usr/local/bin:
 ```shell
-cp gh_2.73.0_linux_amd64/bin/gh /usr/local/bin/
+sudo cp gh_2.73.0_linux_amd64/bin/gh /usr/local/bin/
 ```
 
 Get gh cli version:
@@ -26,7 +26,7 @@ gh version
 
 Delete binary in /usr/local/bin:
 ```shell
-rm -rf /usr/local/bin/gh
+sudo rm -rf /usr/local/bin/gh
 ```
 
 ## Install GH with Arkade
