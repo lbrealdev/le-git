@@ -1,20 +1,20 @@
 # GitHub CLI
 
-## Install GH cli on Linux
+## Installation
 
 Download binary from [GH cli](https://github.com/cli/cli) repository:
 ```shell
-curl -s -f -L "https://github.com/cli/cli/releases/download/v2.30.0/gh_2.30.0_linux_amd64.tar.gz" -o gh_2.30.0_linux_amd64.tar.gz
+curl -fsSLo "gh_2.73.0_linux_amd64.tar.gz" "https://github.com/cli/cli/releases/download/v2.73.0/gh_2.73.0_linux_amd64.tar.gz"
 ```
 
 Extract the tar file:
 ```shell
-tar -xf gh_2.30.0_linux_amd64.tar.gz
+tar -xf gh_2.73.0_linux_amd64.tar.gz
 ```
 
 Copy binary to your /usr/local/bin:
 ```shell
-cp gh_2.30.0_linux_amd64/bin/gh /usr/local/bin/
+sudo cp gh_2.73.0_linux_amd64/bin/gh /usr/local/bin/
 ```
 
 Get gh cli version:
@@ -22,13 +22,12 @@ Get gh cli version:
 gh version
 ```
 
-#### Uninstall gh
+## Uninstall
 
 Delete binary in /usr/local/bin:
 ```shell
-rm -rf /usr/local/bin/gh
+sudo rm -rf /usr/local/bin/gh
 ```
-
 
 ## Install GH with Arkade
 
@@ -40,7 +39,6 @@ arkade get gh
 #### You must be wondering what is arkade?
 
 [arkade - Open Source Marketplace For Developer Tools](https://github.com/alexellis/arkade)
-
 
 ### Reletad links
 

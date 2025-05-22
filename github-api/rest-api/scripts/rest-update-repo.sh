@@ -6,7 +6,7 @@
 set -euo pipefail
 
 usage() {
-  echo "Usage: $0 <repo-name> [--name <new-name>] [--description <description>] [--homepage <homepage>]"
+  echo "Usage: $0 <repo-name> [--name <new-name>] [--description <description>] [--private <private>] [--homepage <homepage>]"
   exit 1
 }
 
