@@ -54,4 +54,3 @@ mutation {
 - [Forming calls with GraphQL](https://docs.github.com/en/graphql/guides/forming-calls-with-graphql)
 - [Github GraphQL API reference](https://docs.github.com/en/graphql/reference)
 - [Github GraphQL Explorer](https://docs.github.com/en/graphql/overview/explorer)
-- []()
