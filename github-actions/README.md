@@ -26,7 +26,7 @@
 - [Security hardening for GitHub Actions](https://docs.github.com/en/actions/security-for-github-actions/security-guides/security-hardening-for-github-actions)
 - [How to Harden GitHub Actions: The Unofficial Guide](https://www.wiz.io/blog/github-actions-security-guide)
 - [Application Security Cheat Sheet - GitHub Actions](https://0xn3va.gitbook.io/cheat-sheets/ci-cd/github/actions)
-- []()
+- [Action Advisor](https://app.stepsecurity.io/action-advisor)
 
 ### GitHub Actions Tutorials
 
