@@ -1,6 +1,10 @@
-# git - the stupid content tracker
+# git
 
-## git status
+git - the stupid content tracker
+
+## Usage
+
+### git status
 
 Show the working tree status:
 ```shell
@@ -11,7 +15,7 @@ Show the branch and tracking info in short-format:
 git status -bs
 ```
 
-## git branch
+### git branch
 
 Show the current branch context:
 ```shell
@@ -52,7 +56,7 @@ Once the branch has been deleted remotely, delete it locally:
 git branch -D <branch-name>
 ```
 
-## git checkout
+### git checkout
 
 Switch branch:
 ```shell
@@ -69,7 +73,7 @@ Switch to `main` branch:
 git checkout -
 ```
 
-## git config
+### git config
 
 List your global `git` configuration:
 ```shell
@@ -134,7 +138,7 @@ Edit single repository config:
 git config --edit
 ```
 
-## git add
+### git add
 
 Add files:
 ```shell
@@ -146,7 +150,7 @@ Add files recursively:
 git add -A
 ```
 
-## git rm
+### git rm
 
 Remove files from the working tree and from the index:
 ```shell
@@ -158,7 +162,7 @@ Remove a directory from the working tree:
 git rm -r <directory>
 ```
 
-## git remote
+### git remote
 
 Show the location configured:
 ```shell
@@ -175,7 +179,7 @@ Deletes all stale remote-tracking branches:
 git remote prune origin
 ```
 
-## git log
+### git log
 
 Show commit logs with pretty output:
 ```shell
@@ -187,7 +191,7 @@ Get the hash of the last commit:
 git log -1 --format="%H"
 ```
 
-## git commit
+### git commit
 
 #### Empty commit
 
