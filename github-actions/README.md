@@ -11,13 +11,13 @@
 
 ### GitHub Actions Tools
 
-- [act](https://github.com/lbrealdev/le-git/blob/master/github-actions/act.md)
-- [zizmor](https://github.com/lbrealdev/le-git/blob/master/github-actions/zizmor.md)
-- [wrkflw](https://github.com/lbrealdev/le-git/blob/master/github-actions/wrkflw.md)
-- [claws](https://github.com/Betterment/claws)
-- [gato](https://github.com/praetorian-inc/gato)
-- [gato-x](https://github.com/AdnaneKhan/Gato-X)
-- [octoscan](https://github.com/synacktiv/octoscan)
+- [act](https://github.com/lbrealdev/le-git/blob/master/github-actions/tools/act.md)
+- [zizmor](https://github.com/lbrealdev/le-git/blob/master/github-actions/tools/zizmor.md)
+- [wrkflw](https://github.com/lbrealdev/le-git/blob/master/github-actions/tools/wrkflw.md)
+- [claws](https://github.com/lbrealdev/le-git/blob/master/github-actions/tools/claws.md)
+- [gato](https://github.com/lbrealdev/le-git/blob/master/github-actions/tools/gato.md)
+- [gato-x](https://github.com/lbrealdev/le-git/blob/master/github-actions/tools/gato-x.md)
+- [octoscan](https://github.com/lbrealdev/le-git/blob/master/github-actions/tools/octoscan.md)
 - [lotp](https://boostsecurityio.github.io/lotp/)
 - [allstar](https://github.com/ossf/allstar)
 
@@ -35,3 +35,5 @@
 ### GitHub Actions Blogs
 
 - [ArtiPACKED: Hacking Giants Through a Race Condition in GitHub Actions Artifacts](https://unit42.paloaltonetworks.com/github-repo-artifacts-leak-tokens/)
+- [GitHub Actions: Faster Python runs with cached virtual environments](https://adamj.eu/tech/2023/11/02/github-actions-faster-python-virtual-environments/)
+- [Prefer tee -a, not >>, in CI](https://huonw.github.io/blog/2025/02/ci-tee/)

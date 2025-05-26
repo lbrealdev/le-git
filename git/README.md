@@ -1,23 +1,8 @@
-# git - the stupid content tracker
+# git
 
-### Git tricks
+git - the stupid content tracker
 
-Prune origin and delete branch locally:
-```shell
-git remote prune origin | grep 'pruned' | cut -d'/' -f2 | xargs git branch -D 2> /dev/null
-```
-
-Show last commit changes:
-```shell
-git show $(git log -1 --format="%H")
-```
-
-### Links
-
-- [Oh My Git - An open source game about learning Git!](https://ohmygit.org/)
-- [Modern Git Commands and Features You Should Be Using](https://martinheinz.dev/blog/109)
-
-## Git
+## Usage
 
 ### git status
 
@@ -233,3 +218,13 @@ Once identified, run this command to undo this commit:
 ```shell
 git reset HEAD~1
 ```
+
+### Related links
+
+- [Git: avoid reset --hard, use reset --keep instead](https://adamj.eu/tech/2024/09/02/git-avoid-reset-hard-use-keep/)
+- [Git: generate statistics with shortlog](https://adamj.eu/tech/2024/09/03/git-quick-stats-shortlog/)
+- [Git: count commits with rev-list](https://adamj.eu/tech/2024/11/20/git-count-commits-rev-list/)
+- [Git into Open Source](https://www.git-in.to/)
+- [Beej's Guide to Git](https://beej.us/guide/bggit/)
+- [Oh My Git - An open source game about learning Git!](https://ohmygit.org/)
+- [Modern Git Commands and Features You Should Be Using](https://martinheinz.dev/blog/109)
