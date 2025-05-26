@@ -35,3 +35,5 @@
 ### GitHub Actions Blogs
 
 - [ArtiPACKED: Hacking Giants Through a Race Condition in GitHub Actions Artifacts](https://unit42.paloaltonetworks.com/github-repo-artifacts-leak-tokens/)
+- [GitHub Actions: Faster Python runs with cached virtual environments](https://adamj.eu/tech/2023/11/02/github-actions-faster-python-virtual-environments/)
+- [Prefer tee -a, not >>, in CI](https://huonw.github.io/blog/2025/02/ci-tee/)

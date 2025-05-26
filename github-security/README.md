@@ -11,3 +11,9 @@
 ## Security Tools
 
 - [noseyparker](https://github.com/praetorian-inc/noseyparker)
+
+### Related links
+
+- [Awesome CodeQL](https://github.com/advanced-security/awesome-codeql)
+- [Awesome Dependabot](https://github.com/advanced-security/awesome-dependabot)
+- [Awesome Secret Scanning](https://github.com/advanced-security/awesome-secret-scanning)
