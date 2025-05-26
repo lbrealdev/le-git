@@ -10,7 +10,6 @@ This document contains **le-git** `(legit)` that means "Let's Explain Git and Gi
 ### GitHub
 <!-- TOC -->
 
-- [GitHub CLI](https://github.com/lbrealdev/le-git/tree/master/github-cli)
 - [GitHub Actions](https://github.com/lbrealdev/le-git/tree/master/github-actions)
 - [GitHub API](https://github.com/lbrealdev/le-git/tree/master/github-api)
     - [REST API](https://github.com/lbrealdev/le-git/tree/master/github-api/rest-api)
@@ -19,7 +18,10 @@ This document contains **le-git** `(legit)` that means "Let's Explain Git and Gi
     - [SSH Authentication Key](https://github.com/lbrealdev/le-git/blob/master/github-auth/github_ssh_key.md)
     - [SSH Signing Key](https://github.com/lbrealdev/le-git/blob/master/github-auth/github_ssh_signing_key.md)
     - [GPG Key](https://github.com/lbrealdev/le-git/blob/master/github-auth/github_gpg_key.md)
-
+- [GitHub Apps](https://github.com/lbrealdev/le-git/tree/master/github-docs)
+- [GitHub Blogs](https://github.com/lbrealdev/le-git/tree/master/github-blogs)
+- [GitHub CLI](https://github.com/lbrealdev/le-git/tree/master/github-cli)
+- [GitHub Documentation](https://github.com/lbrealdev/le-git/tree/master/github-docs)
 
 ## Markdown Tools
 
