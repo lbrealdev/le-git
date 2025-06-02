@@ -18,6 +18,8 @@
 - [gato](https://github.com/lbrealdev/le-git/blob/master/github-actions/tools/gato.md)
 - [gato-x](https://github.com/lbrealdev/le-git/blob/master/github-actions/tools/gato-x.md)
 - [octoscan](https://github.com/lbrealdev/le-git/blob/master/github-actions/tools/octoscan.md)
+- [raven](https://github.com/CycodeLabs/raven)
+- [purplepanda](https://github.com/carlospolop/PurplePanda)
 - [lotp](https://boostsecurityio.github.io/lotp/)
 - [allstar](https://github.com/ossf/allstar)
 
