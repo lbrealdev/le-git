@@ -1,6 +1,8 @@
 # GitHub CLI
 
-## Installation
+## Usage
+
+### Installation
 
 Download binary from [GH cli](https://github.com/cli/cli) repository:
 ```shell
@@ -22,14 +24,14 @@ Get gh cli version:
 gh version
 ```
 
-## Uninstall
+### Uninstall
 
 Delete binary in /usr/local/bin:
 ```shell
 sudo rm -rf /usr/local/bin/gh
 ```
 
-## Install GH with Arkade
+### Install GitHub CLI with Arkade
 
 Run `arkade get` and follow the instructions:
 ```shell
@@ -40,6 +42,6 @@ arkade get gh
 
 [arkade - Open Source Marketplace For Developer Tools](https://github.com/alexellis/arkade)
 
-### Reletad links
+## Reletad links
 
 - [Exploring GitHub CLI: How to interact with GitHub’s GraphQL API endpoint](https://github.blog/developer-skills/github/exploring-github-cli-how-to-interact-with-githubs-graphql-api-endpoint/)
