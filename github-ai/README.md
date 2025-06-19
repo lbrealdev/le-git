@@ -1,6 +1,6 @@
 # GitHub AI
 
-// to do
+- https://docs.github.com/en/github-models/about-github-models
 
 ## Related links
 
