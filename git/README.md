@@ -164,7 +164,7 @@ git rm -r <directory>
 
 ### git remote
 
-Show the location configured:
+Show locations:
 ```shell
 git remote -v
 ```
@@ -177,6 +177,11 @@ git remote set-url origin <new-github-repo-url>
 Deletes all stale remote-tracking branches:
 ```shell
 git remote prune origin
+```
+
+Show information about the remote:
+```shell
+git remote show origin
 ```
 
 ### git log
@@ -217,6 +222,18 @@ git log --oneline
 Once identified, run this command to undo this commit:
 ```shell
 git reset HEAD~1
+```
+
+### git diff
+
+// description:
+```shell
+git diff
+```
+
+// description:
+```shell
+git diff --color-words
 ```
 
 ### Related links
