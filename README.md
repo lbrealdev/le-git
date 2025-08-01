@@ -8,8 +8,10 @@ This document contains **le-git** `(legit)` that means "Let's Explain Git and Gi
 - [Git](https://github.com/lbrealdev/le-git/tree/master/git)
 
 ### GitHub
+
 <!-- TOC -->
 
+- [GitHub AI](https://github.com/lbrealdev/le-git/tree/master/github-ai)
 - [GitHub Actions](https://github.com/lbrealdev/le-git/tree/master/github-actions)
 - [GitHub API](https://github.com/lbrealdev/le-git/tree/master/github-api)
     - [REST API](https://github.com/lbrealdev/le-git/tree/master/github-api/rest-api)
