@@ -2,7 +2,18 @@
 
 git - the stupid content tracker
 
-## Usage
+## Table of Contents
+
+- [git status](#git-status)
+- [git branch](#git-branch)
+- [git config](#git-config)
+- [git checkout](#git-checkout)
+- [git add](#git-add)
+- [git rm](#git-rm)
+- [git remote](#git-remote)
+- [git log](#git-log)
+- [git commit](#git-commit)
+- [git diff](#git-diff)
 
 ### git status
 
@@ -30,6 +41,11 @@ git branch -a
 List branch names:
 ```shell
 git branch -l
+```
+
+Show only the current branch name:
+```shell
+git branch --show-current
 ```
 
 #### Create a branch
@@ -68,7 +84,7 @@ Switch branch even if the index or the working tree differs from `HEAD`:
 git checkout -f <branch-name>
 ```
 
-Switch to `main` branch:
+Switch to previous branch:
 ```shell
 git checkout -
 ```
@@ -164,7 +180,7 @@ git rm -r <directory>
 
 ### git remote
 
-Show the location configured:
+Show locations:
 ```shell
 git remote -v
 ```
@@ -177,6 +193,11 @@ git remote set-url origin <new-github-repo-url>
 Deletes all stale remote-tracking branches:
 ```shell
 git remote prune origin
+```
+
+Show information about the remote:
+```shell
+git remote show origin
 ```
 
 ### git log
@@ -217,6 +238,18 @@ git log --oneline
 Once identified, run this command to undo this commit:
 ```shell
 git reset HEAD~1
+```
+
+### git diff
+
+// description:
+```shell
+git diff
+```
+
+// description:
+```shell
+git diff --color-words
 ```
 
 ### Related links
