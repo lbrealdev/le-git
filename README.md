@@ -2,13 +2,12 @@
 
 This document contains **le-git** `(legit)` that means "Let's Explain Git and Github". This is my own public documentation about git and github where I make random updates to one topic or another about the two tools
 
-### Git
+## Git
 <!-- TOC -->
 
 - [Git](https://github.com/lbrealdev/le-git/tree/master/git)
 
-### GitHub
-
+## GitHub
 <!-- TOC -->
 
 - [GitHub AI](https://github.com/lbrealdev/le-git/tree/master/github-ai)
@@ -25,9 +24,10 @@ This document contains **le-git** `(legit)` that means "Let's Explain Git and Gi
 - [GitHub CLI](https://github.com/lbrealdev/le-git/tree/master/github-cli)
 - [GitHub Documentation](https://github.com/lbrealdev/le-git/tree/master/github-docs)
 
-## Markdown Tools
+## Tools
 
-- [Table Generator - Markdown](https://www.tablesgenerator.com/markdown_tables#)
+- [Table Generator (Markdown)](https://www.tablesgenerator.com/markdown_tables#)
+- [Readme.so](https://readme.so/)
 
 ## Usage
 
