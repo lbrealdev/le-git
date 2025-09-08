@@ -10,6 +10,7 @@
 ## Blogs
 
 - https://github.blog/ai-and-ml/generative-ai/automate-your-project-with-github-models-in-actions/
+- https://github.blog/open-source/maintainers/how-github-models-can-help-open-source-maintainers-focus-on-what-matters/
 
 ## Related links
 
