@@ -26,8 +26,9 @@ This document contains **le-git** `(legit)` that means "Let's Explain Git and Gi
 
 ## Tools
 
-- [Table Generator (Markdown)](https://www.tablesgenerator.com/markdown_tables#)
+- [Tables Generator](https://www.tablesgenerator.com/markdown_tables#)
 - [Readme.so](https://readme.so/)
+- [Gitignore.io](https://www.toptal.com/developers/gitignore)
 
 ## Usage
 
