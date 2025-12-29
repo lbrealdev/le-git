@@ -53,13 +53,13 @@ Once the new SSH keys are generated, you can add them to your Github account in 
 Go to [SSH and GPG keys](https://github.com/settings/keys) in Github Settings panel:
 
 
-![new-ssh-key](./docs/images/new-ssh-key.jpg)
+![new-ssh-key](docsmages/new-ssh-key.jpg)
 
 
 Within the Keys panel, click in [New SSH key](https://github.com/settings/ssh/new) to create a new key:
 
 
-![add-new-ssh-key-signing-key](./docs/images/add-new-ssh-key-sign-key.jpg)
+![add-new-ssh-key-signing-key](docsmages/add-new-ssh-key-sign-key.jpg)
 
 
 - In the `Title` field add a name for your SSH key, I recommend something similar to this:
@@ -115,10 +115,10 @@ git config --global user.signingkey ~/.ssh/id_ed25519.pub
 ```
 **NOTE:** Take this into account.
 
-![git-ssh-sign-verify-warn](./docs/images/git-ssh-sign-verify-warn.jpg)
+![git-ssh-sign-verify-warn](docsmages/git-ssh-sign-verify-warn.jpg)
 
 >
->     If you currently have a git version less than 2.34 this 
+>     If you currently have a git version less than 2.34 this
 >     type of commit signature verify (SSH) will not work, you
 >     must upgrade to version 2.34 or later.
 >
@@ -154,11 +154,11 @@ git commit -a -S -m "YOUR_COMMIT_MESSAGE"
 
 You should see the following tag in your web browser commit history:
 
-![sign-commit-verified-tag](./docs/images/sign-commit-verified-tag.jpg)
+![sign-commit-verified-tag](docsmages/sign-commit-verified-tag.jpg)
 
 **NOTE:** It is important that your `user.name` and `user.email` are correctly configured, otherwise you will see the following tag when signing a commit:
 
-![sign-commit-unverified-tag](./docs/images/sign-commit-unverified-tag.jpg)
+![sign-commit-unverified-tag](docsmages/sign-commit-unverified-tag.jpg)
 
 GitHub full guides:
 

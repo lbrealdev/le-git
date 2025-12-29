@@ -1,20 +1,22 @@
 #!/bin/bash
 
-# Inicializando variáveis
+set -euo pipefail
+
+GITHUB_URL="https://github.com"
+GITHUB_API_URL=${GITHUB_URL/https:\/\//https:\/\/api.}
+GITHUB_TOKEN="$GITHUB_AUTH_TOKEN"
+
 repo=""
 paths=()
 file_paths=()
 
-GITHUB_URL="https://github.com"
-
-# Parse script arguments
-while getopts ":r:f:" flag
+while getopts ":r:d:" flag
 do
     case "${flag}" in
-      r) 
+      r)
         repo=${OPTARG}
         ;;
-      f)
+      d)
         paths+=("${OPTARG}")
         ;;
       \?)
@@ -27,8 +29,9 @@ done
 input_path="${paths[*]-null}"
 
 # Check input path
-evalute_input_path() {
-    local input=$1
+function evalute_input_path() {
+    local input="$1"
+
     if [[ -f "$input" ]]; then
       file_paths+=("$input")
     elif [[ -d "$input" ]]; then
@@ -42,23 +45,19 @@ if [ "$input_path" != "null" ]; then
   for path in "${paths[@]}"; do
     evalute_input_path "$path"
   done
-  
+
   changed_files_json=""
   for path in "${file_paths[@]}"; do
     if [[ -f "$path" ]]; then
-      base64_content=$(base64 -w0 < "$path")
       changed_files_json+="{
-             \"path\": \"$path\",
-             \"contents\": \"$base64_content\"
+             \"path\": \"$path\"
           },
           "
     elif [[ -d "$path" ]]; then
       while IFS= read -r -d '' item
       do
-        base64_content=$(base64 -w0 < "$item")
         changed_files_json+="{
-            \"path\": \"$item\",
-            \"contents\": \"$base64_content\"
+            \"path\": \"$item\"
           },
           "
       done < <(find "$path" -type f -print0)
@@ -69,14 +68,16 @@ if [ "$input_path" != "null" ]; then
           }"
 else
   echo "Empty!!"
+  exit 1
 fi
 
 branch="main"
 repo_nwo="$repo"
-message_headline="signed commit via graphql API"
+message_headline="signed via graphql API"
 message_body="signed commit via graphql API"
-remote_url="${GITHUB_URL/%/\/$repo.git}"
-parent_sha=$(git ls-remote --refs "$remote_url" main | cut -f1)
+
+remote_url=${GITHUB_URL/https:\/\/github.com/https:\/\/$GITHUB_TOKEN@github.com/$repo.git}
+parent_sha=$(git ls-remote --refs "$remote_url" main | awk '{print $1}')
 
 graphql_request='{
   "query": "mutation ($input: CreateCommitOnBranchInput!) {
@@ -114,7 +115,7 @@ graphql_request='{
         "body": "'"$message_body"'"
       },
       "fileChanges": {
-        "additions": [
+        "deletions": [
           '"$changed_files_json"'
         ]
       },
@@ -126,6 +127,7 @@ graphql_request='{
 # DEBUG
 #echo "$graphql_request"
 #echo "FINAL JSON REQUEST"
+#exit
 
 if [[ -e "request.json" ]]; then
   echo "Cleaning up old request file ..."
@@ -142,7 +144,7 @@ printf "\n"
 create_commit=$(curl -sL \
   -H "Accept: application/vnd.github+json" \
   -H "Authorization: Bearer $GITHUB_TOKEN" \
-  https://api.github.com/graphql \
+  "$GITHUB_API_URL/graphql" \
   -d "@request.json")
 
 echo "$create_commit" | jq .

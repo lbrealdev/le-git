@@ -14,7 +14,7 @@ file_paths=()
 while getopts ":r:u:" flag
 do
     case "${flag}" in
-      r) 
+      r)
         repo=${OPTARG}
         ;;
       u)
@@ -50,7 +50,7 @@ if [ "$input_path" != "null" ]; then
   for path in "${paths[@]}"; do
     check_input_path "$path"
   done
-  
+
   changed_files_json=""
   for path in "${file_paths[@]}"; do
     if [[ -f "$path" ]]; then

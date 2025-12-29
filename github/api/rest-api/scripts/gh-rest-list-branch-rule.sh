@@ -21,9 +21,9 @@ function gh_api_get_branch_protection() {
     "/repos/$GITHUB_OWNER/$repo/branches")
 
   branches=$(echo "$fetch" | jq -r '.[] | "\(.name)/\(.protected)"' | sort -r)
-  
+
   readarray -t _branches <<< "$branches"
-  
+
   found_branch_protection=false
 
   for b in "${_branches[@]}"; do
