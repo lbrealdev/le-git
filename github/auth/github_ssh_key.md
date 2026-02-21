@@ -44,13 +44,13 @@ Once the new SSH keys are generated, you can add them to your Github account in 
 Go to [SSH and GPG keys](https://github.com/settings/keys) in Github Settings panel:
 
 
-![new-ssh-key](./docs/images/new-ssh-key.jpg)
+![new-ssh-key](docsmages/new-ssh-key.jpg)
 
 
 Within the Keys panel, click in [New SSH key](https://github.com/settings/ssh/new) to create a new key:
 
 
-![add-new-ssh-key-authentication-key](./docs/images/add-new-ssh-key-auth-key.jpg)
+![add-new-ssh-key-authentication-key](docsmages/add-new-ssh-key-auth-key.jpg)
 
 
 - In the `Title` field add a name for your SSH key, I recommend something similar to this:
