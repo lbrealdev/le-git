@@ -2,9 +2,35 @@
 
 set -euo pipefail
 
+print_help() {
+  cat <<EOF
+Usage: $0 [options] <owner/repo>
+
+Merge all mergeable dependabot PRs in the specified repository.
+
+Arguments:
+  owner/repo    GitHub repository in owner/repo format
+
+Options:
+  -h, --help    Show this help message and exit
+
+Examples:
+  $0 cli/cli
+  $0 --help
+EOF
+}
+
+for arg in "$@"; do
+  case "$arg" in
+    -h|--help)
+      print_help
+      exit 0
+      ;;
+  esac
+done
+
 if [[ $# -eq 0 ]]; then
-  echo "Usage: $0 <owner/repo>"
-  echo "  Merge all mergeable dependabot PRs in the specified repository."
+  print_help
   exit 1
 fi
 
@@ -30,10 +56,10 @@ while read -r pr; do
   if [[ "$status" == "CLEAN" ]]; then
     echo "Merging PR #$number..."
     gh pr merge "$number" -R "$REPO" --merge --delete-branch
-    ((MERGE_COUNT++))
+    ((MERGE_COUNT++)) || true
   else
     BLOCKED_LIST+="- #$number: $status\n"
-    ((BLOCKED_COUNT++))
+    ((BLOCKED_COUNT++)) || true
   fi
 done <<< "$PR_DATA"
 
