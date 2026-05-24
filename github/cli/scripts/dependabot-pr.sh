@@ -43,7 +43,7 @@ if ! gh auth status &>/dev/null; then
   exit 1
 fi
 
-PR_DATA=$(gh pr ls -R "$REPO" -S "author:app/dependabot" --json number,mergeStateStatus --jq '.[]'2>&1) || {
+PR_DATA=$(gh pr ls -R "$REPO" -S "author:app/dependabot" --json number,mergeStateStatus --jq '.[]' 2>&1) || {
   echo "Error: Failed to list PRs for repository '$REPO'." >&2
   echo "Please check that the repository exists and you have access to it." >&2
   exit 1
