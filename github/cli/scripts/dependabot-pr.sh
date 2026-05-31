@@ -72,7 +72,7 @@ while read -r pr; do
     BLOCKED_LIST+="- #$number: $status\n"
     ((BLOCKED_COUNT++)) || true
   fi
-done <<< "$PR_DATA"
+done <<<"$PR_DATA"
 
 if [[ $MERGE_COUNT -gt 0 ]]; then
   echo -e "\nMerged: $MERGE_COUNT PR(s)"
