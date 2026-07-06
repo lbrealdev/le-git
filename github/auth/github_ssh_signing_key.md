@@ -2,13 +2,13 @@
 
 <!-- TOC -->
 
-- [Set up SSH keys](https://github.com/lbrealdev/le-git/blob/master/github/auth/github_ssh_signing_key.md#set-up-ssh-keys)
-- [Add SSH key in GitHub account - Signing Key](https://github.com/lbrealdev/le-git/blob/master/github/auth/github_ssh_signing_key.md#add-ssh-key-in-github-account---signing-key)
-- [Commit Signature Verification](https://github.com/lbrealdev/le-git/blob/master/github/auth/github_ssh_signing_key.md#commit-signature-verification)
+- [Set up SSH keys](#set-up-ssh-keys)
+- [Add SSH key in GitHub account - Signing Key](#add-ssh-key-in-github-account---signing-key)
+- [Commit Signature Verification](#commit-signature-verification)
 
-**NOTE:** If you came from the [GitHub SSH Keys (Authentication Key)](https://github.com/lbrealdev/le-git/blob/master/github/auth/github_ssh_key.md) guide, proceed from the following step.
+**NOTE:** If you came from the [GitHub SSH Keys (Authentication Key)](github_ssh_key.md) guide, proceed from the following step.
 
-- [Add SSH key in GitHub Account - Signing Key](https://github.com/lbrealdev/le-git/blob/master/github/auth/github_ssh_signing_key.md#add-ssh-key-in-github-account---signing-key)
+- [Add SSH key in GitHub Account - Signing Key](#add-ssh-key-in-github-account---signing-key)
 
 **NOTE:** *You can use your SSH key generated in the previous tutorial to sign commits.*
 
@@ -88,7 +88,7 @@ ssh-ed25519 XXXXX your_email@example.com
 
 ### Using GitHub CLI
 
-- [GitHub CLI guide](https://github.com/lbrealdev/le-git/tree/master/github/cli)
+- [GitHub CLI guide](../cli/README.md)
 
 ## Commit Signature Verification
 

@@ -2,8 +2,8 @@
 
 ### Guides
 
-- [Github Actions Workflows](https://github.com/lbrealdev/le-git/blob/master/github/actions/github_actions_workflows.md)
-- [Github Actions - self-hosted runners](https://github.com/lbrealdev/le-git/blob/master/github/actions/github_actions_self_hosted_runner.md)
+- [Github Actions Workflows](github_actions_workflows.md)
+- [Github Actions - self-hosted runners](github_actions_self_hosted_runner.md)
 
 ### GitHub Actions Labs
 
@@ -11,13 +11,13 @@
 
 ### GitHub Actions Tools
 
-- [act](https://github.com/lbrealdev/le-git/blob/master/github/actions/tools/act.md)
-- [zizmor](https://github.com/lbrealdev/le-git/blob/master/github/actions/tools/zizmor.md)
-- [wrkflw](https://github.com/lbrealdev/le-git/blob/master/github/actions/tools/wrkflw.md)
-- [claws](https://github.com/lbrealdev/le-git/blob/master/github/actions/tools/claws.md)
-- [gato](https://github.com/lbrealdev/le-git/blob/master/github/actions/tools/gato.md)
-- [gato-x](https://github.com/lbrealdev/le-git/blob/master/github/actions/tools/gato-x.md)
-- [octoscan](https://github.com/lbrealdev/le-git/blob/master/github/actions/tools/octoscan.md)
+- [act](tools/act.md)
+- [zizmor](tools/zizmor.md)
+- [wrkflw](tools/wrkflw.md)
+- [claws](tools/claws.md)
+- [gato](tools/gato.md)
+- [gato-x](tools/gato-x.md)
+- [octoscan](tools/octoscan.md)
 - [raven](https://github.com/CycodeLabs/raven)
 - [purplepanda](https://github.com/carlospolop/PurplePanda)
 - [lotp](https://boostsecurityio.github.io/lotp/)
