@@ -6,7 +6,7 @@ The `gh-rest-*.sh` scripts use `gh cli` behind the scenes, make sure you have `g
 
 Go to scripts directory:
 ```shell
-cd github-api/rest-api/scripts/
+cd github/api/rest-api/scripts/
 ```
 
 List branch protection rules:

@@ -5,24 +5,24 @@ This document contains **le-git** `(legit)` that means "Let's Explain Git and Gi
 ## Git
 <!-- TOC -->
 
-- [Git](https://github.com/lbrealdev/le-git/tree/master/git)
+- [Git](git/README.md)
 
 ## GitHub
 <!-- TOC -->
 
-- [GitHub AI](https://github.com/lbrealdev/le-git/tree/master/github-ai)
-- [GitHub Actions](https://github.com/lbrealdev/le-git/tree/master/github-actions)
-- [GitHub API](https://github.com/lbrealdev/le-git/tree/master/github-api)
-    - [REST API](https://github.com/lbrealdev/le-git/tree/master/github-api/rest-api)
-    - [GraphQL API](https://github.com/lbrealdev/le-git/tree/master/github-api/graphql-api)
-- [Github Authentication](https://github.com/lbrealdev/le-git/blob/master/github-auth/README.md)
-    - [SSH Authentication Key](https://github.com/lbrealdev/le-git/blob/master/github-auth/github_ssh_key.md)
-    - [SSH Signing Key](https://github.com/lbrealdev/le-git/blob/master/github-auth/github_ssh_signing_key.md)
-    - [GPG Key](https://github.com/lbrealdev/le-git/blob/master/github-auth/github_gpg_key.md)
-- [GitHub Apps](https://github.com/lbrealdev/le-git/tree/master/github-docs)
-- [GitHub Blogs](https://github.com/lbrealdev/le-git/tree/master/github-blogs)
-- [GitHub CLI](https://github.com/lbrealdev/le-git/tree/master/github-cli)
-- [GitHub Documentation](https://github.com/lbrealdev/le-git/tree/master/github-docs)
+- [GitHub AI](github/ai/README.md)
+- [GitHub Actions](github/actions/README.md)
+- [GitHub API](github/api/README.md)
+    - [REST API](github/api/rest-api/README.md)
+    - [GraphQL API](github/api/graphql-api/README.md)
+- [GitHub Authentication](github/auth/README.md)
+    - [SSH Authentication Key](github/auth/github_ssh_key.md)
+    - [SSH Signing Key](github/auth/github_ssh_signing_key.md)
+    - [GPG Key](github/auth/github_gpg_key.md)
+- [GitHub Apps](github/apps/README.md)
+- [GitHub Blogs](github/blogs/README.md)
+- [GitHub CLI](github/cli/README.md)
+- [GitHub Documentation](github/docs/README.md)
 
 ## Tools
 

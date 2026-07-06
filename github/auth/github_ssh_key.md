@@ -1,7 +1,7 @@
 # GitHub Authentication - GitHub SSH Keys (Authentication Key)
 
-- [Set up SSH keys](https://github.com/lbrealdev/le-git/blob/master/github-auth/git_ssh_key.md#set-up-ssh-keys)
-- [Add SSH key in GitHub account - Authentication Key](https://github.com/lbrealdev/le-git/blob/master/github-auth/git_ssh_key.md#add-ssh-key-in-github-account---authentication-key)
+- [Set up SSH keys](#set-up-ssh-keys)
+- [Add SSH key in GitHub account - Authentication Key](#add-ssh-key-in-github-account---authentication-key)
 
 ## Set up SSH keys
 
@@ -77,7 +77,7 @@ ssh-ed25519 XXXXX your_email@example.com
 
 ### Using GitHub CLI
 
-- [GitHub CLI guide](https://github.com/lbrealdev/le-git/tree/master/github-cli)
+- [GitHub CLI guide](../cli/README.md)
 
 **After adding a new SSH authentication key to your account on GitHub.com, you can reconfigure any local repositories to use SSH**. For more information, see [Managing remote repositories](https://docs.github.com/en/get-started/getting-started-with-git/managing-remote-repositories#switching-remote-urls-from-https-to-ssh).
 
