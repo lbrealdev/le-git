@@ -1,43 +1,53 @@
 # le-git
 
-This document contains **le-git** `(legit)` that means "Let's Explain Git and Github". This is my own public documentation about git and github where I make random updates to one topic or another about the two tools
+**le-git** (*legit*) — **L**et's **E**xplain **Git** and GitHub.
 
-## Git
-<!-- TOC -->
+Personal notes, guides, and helper scripts for day-to-day Git and GitHub work.
+Topics get updated as I dig into them — not a complete reference.
 
-- [Git](git/README.md)
+## Quick start
 
-## GitHub
-<!-- TOC -->
+Scripts are wired through [`just`](https://github.com/casey/just):
 
-- [GitHub AI](github/ai/README.md)
-- [GitHub Actions](github/actions/README.md)
-- [GitHub API](github/api/README.md)
-    - [REST API](github/api/rest-api/README.md)
-    - [GraphQL API](github/api/graphql-api/README.md)
-- [GitHub Authentication](github/auth/README.md)
-    - [SSH Authentication Key](github/auth/github_ssh_key.md)
-    - [SSH Signing Key](github/auth/github_ssh_signing_key.md)
-    - [GPG Key](github/auth/github_gpg_key.md)
-- [GitHub Apps](github/apps/README.md)
-- [GitHub Blogs](github/blogs/README.md)
-- [GitHub CLI](github/cli/README.md)
-- [GitHub Documentation](github/docs/README.md)
-
-## Tools
-
-- [Tables Generator](https://www.tablesgenerator.com/markdown_tables#)
-- [Readme.so](https://readme.so/)
-- [Gitignore.io](https://www.toptal.com/developers/gitignore)
-
-## Usage
-
-Run scripts using `just`:
 ```shell
-just <mod> <recipe> <arg>
+just --list
+just --list rest
+just --list gql
 ```
 
-List recipe by modules:
+Example:
+
 ```shell
-just --list <mod>
+just rest repo-branch-rule create my-repo main
+just gql next-id <github-login>
 ```
+
+## Contents
+
+### Git
+
+- [Git commands](git/README.md)
+- [Tricks and tips](git/git-tricks.md)
+
+### GitHub
+
+- [AI](github/ai/README.md)
+- [Actions](github/actions/README.md)
+- [API](github/api/README.md)
+  - [REST](github/api/rest-api/README.md) · [scripts](github/api/rest-api/scripts/README.md)
+  - [GraphQL](github/api/graphql-api/README.md) · [scripts](github/api/graphql-api/scripts/README.md)
+- [Apps](github/apps/README.md)
+- [Authentication](github/auth/README.md)
+  - [SSH auth key](github/auth/github_ssh_key.md)
+  - [SSH signing key](github/auth/github_ssh_signing_key.md)
+  - [GPG key](github/auth/github_gpg_key.md)
+- [Blogs](github/blogs/README.md)
+- [CLI](github/cli/README.md)
+- [Documentation](github/docs/README.md)
+- [Security](github/security/README.md)
+
+## Writing helpers
+
+- [Tables Generator](https://www.tablesgenerator.com/markdown_tables)
+- [readme.so](https://readme.so/)
+- [gitignore.io](https://www.toptal.com/developers/gitignore)
