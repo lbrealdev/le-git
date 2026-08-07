@@ -101,6 +101,18 @@ List your local `git` configuration:
 git config --local -l
 ```
 
+#### CodeCommit HTTPS gitconfig (Git Bash)
+
+Prepare Git for AWS CodeCommit HTTPS with the AWS CLI credential helper
+(avoid the GCM username/password dialog):
+
+```shell
+./git/scripts/setup-cc-gitconfig.sh
+```
+
+See [scripts/README.md](scripts/README.md) for rationale, `--fix-system`, and
+`--migrate` (merge into global + enable `GIT_CONFIG_NOSYSTEM` in `~/.bashrc`).
+
 #### global config repositories
 
 Setting your Git username for every repository on your computer:
