@@ -29,7 +29,7 @@ Options:
 
 Exit codes:
   0  No effective manager/manager-core helper, or --migrate succeeded
-  1  Effective manager still active (fallback instructions printed)
+  1  Effective manager still active (see Recommendation)
   2  Usage error, missing prereqs, git missing, or unexpected failure
 
 Policy:
@@ -180,26 +180,6 @@ print_nosystem_status() {
       log "Windows User env check skipped (cmd.exe not available)"
     fi
   fi
-}
-
-print_fallback_instructions() {
-  print_section "FALLBACK: GIT_CONFIG_NOSYSTEM"
-  log "Effective credential.helper still includes manager."
-  log "Use this only when --fix-system / --migrate cannot clear it:"
-  log ""
-  log "  # current Git Bash session"
-  log "  export GIT_CONFIG_NOSYSTEM=1"
-  log ""
-  log "  # persist for Git Bash"
-  log "  echo 'export GIT_CONFIG_NOSYSTEM=1' >> ~/.bashrc"
-  log ""
-  if command -v cmd.exe >/dev/null 2>&1; then
-    log "  # persist as Windows User env (no Administrator needed)"
-    log "  # PowerShell:"
-    log "  [System.Environment]::SetEnvironmentVariable('GIT_CONFIG_NOSYSTEM','1','User')"
-    log ""
-  fi
-  log "Then reopen the shell and re-run this script."
 }
 
 fix_system_helpers() {
@@ -444,7 +424,9 @@ main() {
   fi
 
   if effective_has_manager; then
-    print_fallback_instructions
+    print_section "Result"
+    log "FAIL: credential.helper manager is still effective"
+    log "See Recommendation above (--fix-system or --migrate)."
     exit 1
   fi
 
