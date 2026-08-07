@@ -101,17 +101,17 @@ List your local `git` configuration:
 git config --local -l
 ```
 
-#### check system credential.helper (Git Bash)
+#### CodeCommit HTTPS gitconfig (Git Bash)
 
-Audit system/global `credential.helper` and remediate a locked
-`manager` helper when needed:
+Prepare Git for AWS CodeCommit HTTPS with the AWS CLI credential helper
+(avoid the GCM username/password dialog):
 
 ```shell
-./git/scripts/check-gitconfig.sh
+./git/scripts/setup-cc-gitconfig.sh
 ```
 
-See [scripts/README.md](scripts/README.md) for `--fix-system` and `--migrate`
-(merge into global + enable `GIT_CONFIG_NOSYSTEM` in `~/.bashrc`).
+See [scripts/README.md](scripts/README.md) for rationale, `--fix-system`, and
+`--migrate` (merge into global + enable `GIT_CONFIG_NOSYSTEM` in `~/.bashrc`).
 
 #### global config repositories
 

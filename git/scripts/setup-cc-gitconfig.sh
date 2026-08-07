@@ -1,14 +1,15 @@
 #!/usr/bin/env bash
-# Audit and remediate system credential.helper=manager for Git Bash / Windows.
-# Prefer fixing system or migrating to global + ~/.bashrc GIT_CONFIG_NOSYSTEM.
+# Setup Git config for AWS CodeCommit HTTPS (Git Bash / Windows).
+# Clears system credential.helper=manager so AWS CLI credential-helper can auth
+# without a username/password dialog. Prefer --fix-system or --migrate + bashrc NOSYSTEM.
 
 set -euo pipefail
 
 BACKUP_DIR="${HOME}/gitconfig-backups"
 DO_FIX_SYSTEM=0
 DO_MIGRATE=0
-PROBE_KEY="check.gitconfig.probe"
-BASHRC_MARKER="# managed-by: check-gitconfig.sh"
+PROBE_KEY="setup.cc.gitconfig.probe"
+BASHRC_MARKER="# managed-by: setup-cc-gitconfig.sh"
 GLOBAL_GITCONFIG="${HOME}/.gitconfig"
 USER_BASHRC="${HOME}/.bashrc"
 
@@ -16,8 +17,9 @@ print_help() {
   cat <<EOF
 Usage: $(basename "$0") [options]
 
-Audit Git credential.helper across system/global/effective config.
-Default is check-only. Mutating flags back up configs first.
+Prepare Git for CodeCommit HTTPS with AWS CLI credential-helper
+(no GCM username/password dialog). Default is check-only.
+Mutating flags back up configs first.
 
 Options:
   --fix-system       Unset credential.helper in system gitconfig (if writable)
