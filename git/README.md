@@ -110,8 +110,8 @@ Audit system/global `credential.helper` and remediate a locked
 ./git/scripts/check-gitconfig.sh
 ```
 
-See [scripts/README.md](scripts/README.md) for `--fix-system`, `--migrate`, and
-the `GIT_CONFIG_NOSYSTEM` fallback policy.
+See [scripts/README.md](scripts/README.md) for `--fix-system` and `--migrate`
+(merge into global + enable `GIT_CONFIG_NOSYSTEM` in `~/.bashrc`).
 
 #### global config repositories
 

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Audit and remediate system credential.helper=manager for Git Bash / Windows.
-# Prefer fixing system or migrating to global; GIT_CONFIG_NOSYSTEM is fallback only.
+# Prefer fixing system or migrating to global + ~/.bashrc GIT_CONFIG_NOSYSTEM.
 
 set -euo pipefail
 
@@ -8,6 +8,9 @@ BACKUP_DIR="${HOME}/gitconfig-backups"
 DO_FIX_SYSTEM=0
 DO_MIGRATE=0
 PROBE_KEY="check.gitconfig.probe"
+BASHRC_MARKER="# managed-by: check-gitconfig.sh"
+GLOBAL_GITCONFIG="${HOME}/.gitconfig"
+USER_BASHRC="${HOME}/.bashrc"
 
 print_help() {
   cat <<EOF
@@ -18,20 +21,20 @@ Default is check-only. Mutating flags back up configs first.
 
 Options:
   --fix-system       Unset credential.helper in system gitconfig (if writable)
-  --migrate          Copy system settings into global (skip GCM helpers),
-                     then set global credential.helper empty reset
+  --migrate          Merge system settings into existing global (skip GCM),
+                     append GIT_CONFIG_NOSYSTEM=1 to existing ~/.bashrc
+                     Requires ~/.gitconfig and ~/.bashrc (does not create them)
   --backup-dir DIR   Backup directory (default: ~/gitconfig-backups)
   -h, --help         Show this help and exit
 
 Exit codes:
-  0  No effective manager/manager-core helper
+  0  No effective manager/manager-core helper, or --migrate succeeded
   1  Effective manager still active (fallback instructions printed)
-  2  Usage error, git missing, or unexpected failure
+  2  Usage error, missing prereqs, git missing, or unexpected failure
 
 Policy:
   1) Writable system  -> unset system credential.helper (--fix-system)
-  2) Read-only system -> migrate system -> global, skip GCM (--migrate)
-  3) Fallback only    -> GIT_CONFIG_NOSYSTEM=1 if manager still effective
+  2) Read-only system -> --migrate (merge system->global, enable NOSYSTEM in ~/.bashrc)
 EOF
 }
 
@@ -225,6 +228,47 @@ is_skipped_migrate_key() {
   return 1
 }
 
+require_migrate_prereqs() {
+  local missing=0
+  if [[ ! -f "$GLOBAL_GITCONFIG" ]]; then
+    err "Global gitconfig not found: ${GLOBAL_GITCONFIG}"
+    warn "Create ~/.gitconfig first, then re-run --migrate"
+    missing=1
+  fi
+  if [[ ! -f "$USER_BASHRC" ]]; then
+    err "bashrc not found: ${USER_BASHRC}"
+    warn "Create ~/.bashrc first, then re-run --migrate"
+    missing=1
+  fi
+  if [[ "$missing" -ne 0 ]]; then
+    return 1
+  fi
+  return 0
+}
+
+bashrc_has_nosystem() {
+  grep -Eq '^[[:space:]]*export[[:space:]]+GIT_CONFIG_NOSYSTEM=' "$USER_BASHRC" 2>/dev/null \
+    || grep -Eq '^[[:space:]]*GIT_CONFIG_NOSYSTEM=' "$USER_BASHRC" 2>/dev/null
+}
+
+append_nosystem_to_bashrc() {
+  print_section "Persist GIT_CONFIG_NOSYSTEM in ~/.bashrc"
+  if bashrc_has_nosystem; then
+    log "GIT_CONFIG_NOSYSTEM already present in ${USER_BASHRC}"
+  else
+    {
+      printf '\n%s\n' "$BASHRC_MARKER"
+      printf 'export GIT_CONFIG_NOSYSTEM=1\n'
+    } >> "$USER_BASHRC"
+    log "Added GIT_CONFIG_NOSYSTEM=1 to ${USER_BASHRC}"
+  fi
+
+  log ""
+  log "Reload your shell, then re-run this script:"
+  log "  source ~/.bashrc"
+  log "  # or close/reopen Git Bash"
+}
+
 migrate_system_to_global() {
   local key val count skipped
   print_section "Migrating system -> global"
@@ -256,28 +300,10 @@ migrate_system_to_global() {
     count=$((count + 1))
   done < <(git config --system --list)
 
-  # Empty helper resets the helper list (clears system manager for this user).
-  # Re-apply as: empty reset first, then any non-GCM helpers already in global.
-  local existing=()
-  local h
-  while IFS= read -r h; do
-    [[ -z "$h" ]] && continue
-    if is_gcm_helper "$h"; then
-      continue
-    fi
-    existing+=("$h")
-  done < <(git config --global --get-all credential.helper 2>/dev/null || true)
-
-  git config --global --unset-all credential.helper 2>/dev/null || true
-  git config --global credential.helper ""
-  if ((${#existing[@]} > 0)); then
-    for h in "${existing[@]}"; do
-      git config --global --add credential.helper "$h"
-    done
-  fi
-
   log "Migrated ${count} value(s); skipped ${skipped} GCM/probe value(s)"
-  log "Applied global credential.helper empty reset"
+  log "Global settings preserved (merge-only; nothing deleted)"
+
+  append_nosystem_to_bashrc
 }
 
 recommend_action() {
@@ -290,12 +316,12 @@ recommend_action() {
     else
       log "System gitconfig is read-only."
       log "Run: $0 --migrate"
-      log "If manager remains effective afterward, use GIT_CONFIG_NOSYSTEM fallback."
+      log "This merges system settings into ~/.gitconfig and enables GIT_CONFIG_NOSYSTEM in ~/.bashrc."
     fi
   else
     log "No effective GCM manager helper detected."
     if [[ -n "${GIT_CONFIG_NOSYSTEM:-}" ]]; then
-      warn "OK depends on GIT_CONFIG_NOSYSTEM; prefer --fix-system or --migrate when possible"
+      warn "OK depends on GIT_CONFIG_NOSYSTEM (system config ignored)"
     fi
   fi
 }
@@ -364,6 +390,10 @@ main() {
     log "system write permission: no"
   fi
 
+  if [[ "$DO_MIGRATE" -eq 1 ]]; then
+    require_migrate_prereqs || exit 2
+  fi
+
   if [[ "$DO_FIX_SYSTEM" -eq 1 || "$DO_MIGRATE" -eq 1 ]]; then
     print_section "Backup"
     backup_configs
@@ -406,13 +436,20 @@ main() {
   print_nosystem_status
   recommend_action "$writable"
 
+  # --migrate succeeds even if this session still sees system manager (reload required).
+  if [[ "$DO_MIGRATE" -eq 1 ]]; then
+    print_section "Result"
+    log "OK: migrate complete; reload shell for GIT_CONFIG_NOSYSTEM to take effect"
+    exit 0
+  fi
+
   if effective_has_manager; then
     print_fallback_instructions
     exit 1
   fi
 
   if [[ -n "${GIT_CONFIG_NOSYSTEM:-}" ]]; then
-    warn "Passing with GIT_CONFIG_NOSYSTEM set (fallback in use)"
+    warn "Passing with GIT_CONFIG_NOSYSTEM set (system config ignored)"
   fi
 
   print_section "Result"

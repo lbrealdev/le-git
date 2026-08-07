@@ -7,16 +7,17 @@ Git Bash helper to audit (and optionally remediate) a locked system
 
 On many corporate machines, system gitconfig lives under Program Files and is
 not writable. That system `manager` helper can interfere with flows such as
-AWS CodeCommit. This script prefers fixing or migrating config; it treats
-`GIT_CONFIG_NOSYSTEM` as a last-resort fallback only.
+AWS CodeCommit.
 
 ### Policy
 
-1. **Writable system gitconfig** — unset system `credential.helper`
-2. **Read-only system gitconfig** — copy system keys into global (skip GCM
-   helpers), then set a global empty `credential.helper` reset
-3. **Fallback only** — if `manager` is still effective, print instructions for
-   `GIT_CONFIG_NOSYSTEM=1` (do not enable it by default)
+1. **Writable system gitconfig** — `--fix-system` unsets system `credential.helper`
+2. **Read-only system gitconfig** — `--migrate`:
+   - requires existing `~/.gitconfig` and `~/.bashrc` (does not create them)
+   - merges system keys into global (keeps existing global values; skips duplicates)
+   - skips GCM helpers (`manager`, `manager-core`, `git-credential-manager*`)
+   - appends `export GIT_CONFIG_NOSYSTEM=1` to `~/.bashrc` if missing
+   - prints reload instructions (`source ~/.bashrc` or reopen Git Bash)
 
 Migration skips these `credential.helper` values:
 
@@ -26,7 +27,7 @@ Migration skips these `credential.helper` values:
 - `git-credential-manager*`
 
 Other system keys (`core.*`, `http.*`, `init.*`, non-GCM helpers, etc.) are
-copied into global when missing.
+copied into global when missing. Nothing is deleted from global.
 
 ### Usage
 
@@ -34,10 +35,13 @@ copied into global when missing.
 # check only (default)
 ./git/scripts/check-gitconfig.sh
 
+# show help
+./git/scripts/check-gitconfig.sh --help
+
 # happy path: remove system credential.helper
 ./git/scripts/check-gitconfig.sh --fix-system
 
-# read-only system: migrate to global + empty helper reset
+# read-only system: merge into global + enable NOSYSTEM in ~/.bashrc
 ./git/scripts/check-gitconfig.sh --migrate
 
 # custom backup directory
@@ -47,29 +51,18 @@ copied into global when missing.
 Mutating flags back up system/global gitconfig into `~/gitconfig-backups/`
 first.
 
+After `--migrate`, reload the shell so `GIT_CONFIG_NOSYSTEM` takes effect:
+
+```shell
+source ~/.bashrc
+# or close/reopen Git Bash
+./git/scripts/check-gitconfig.sh
+```
+
 ### Exit codes
 
 | Code | Meaning |
 |------|---------|
-| 0 | No effective `manager` / `manager-core` helper |
-| 1 | Effective manager still active (fallback instructions printed) |
-| 2 | Usage error, git missing, or unexpected failure |
-
-Warnings (still exit `0`) when OK only because `GIT_CONFIG_NOSYSTEM` is set,
-or when it is set in the current shell/Bash profile but not as a Windows User
-environment variable.
-
-### Fallback (only if needed)
-
-```shell
-export GIT_CONFIG_NOSYSTEM=1
-echo 'export GIT_CONFIG_NOSYSTEM=1' >> ~/.bashrc
-```
-
-Windows User env (no Administrator), PowerShell:
-
-```powershell
-[System.Environment]::SetEnvironmentVariable('GIT_CONFIG_NOSYSTEM', '1', 'User')
-```
-
-Reopen the shell and re-run the script.
+| 0 | No effective `manager` / `manager-core` helper, or `--migrate` succeeded |
+| 1 | Effective manager still active (check-only / `--fix-system` path) |
+| 2 | Usage error, missing `~/.gitconfig`/`~/.bashrc` for migrate, or unexpected failure |
