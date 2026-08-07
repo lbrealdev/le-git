@@ -22,27 +22,53 @@ of CodeCommit when you already authenticate through AWS CLI / SSO / IAM.
 
 - Git
 - AWS CLI v2
-- HTTPS remotes
+- HTTPS remotes (not console **HTTPS (GRC)**)
 - `aws codecommit credential-helper`
 
-Example global helper (set in `~/.gitconfig` as part of your normal AWS/Git
-setup; this script does not invent it for you, but will preserve it if already
-present and may copy non-GCM helpers when merging from system):
+Preferred `~/.gitconfig` shape when GCM may still be present (URL-scoped helper
++ `UseHttpPath`, as in the AWS Windows HTTPS setup **Important** note). This
+script does not write these entries for you; set them as part of normal AWS/Git
+setup. It will preserve existing non-GCM helpers when merging from system.
+
+Two region examples:
 
 ```ini
-[credential]
+[credential "https://git-codecommit.us-east-1.amazonaws.com"]
         helper = !aws codecommit credential-helper $@
+        UseHttpPath = true
+
+[credential "https://git-codecommit.us-east-2.amazonaws.com"]
+        helper = !aws codecommit credential-helper $@
+        UseHttpPath = true
+```
+
+Or cover CodeCommit hosts with a wildcard:
+
+```ini
+[credential "https://git-codecommit.*.amazonaws.com"]
+        helper = !aws codecommit credential-helper $@
+        UseHttpPath = true
+```
+
+Git Bash note: when setting via `git config`, use **single quotes** (not double
+quotes), per the AWS Windows HTTPS docs. Example:
+
+```shell
+git config --global credential.https://git-codecommit.*.amazonaws.com.helper '!aws codecommit credential-helper $@'
+git config --global credential.UseHttpPath true
 ```
 
 **Not using SSH here** — SSH to CodeCommit is a valid option, but this workflow
 is intentionally HTTPS-only for now.
 
-**Not using [`git-remote-codecommit`](https://github.com/aws/git-remote-codecommit)**
+**Not using HTTPS (GRC)** — Amazon’s console label for
+[`git-remote-codecommit`](https://github.com/aws/git-remote-codecommit)
 (PyPI: [git-remote-codecommit](https://pypi.org/project/git-remote-codecommit/)):
 
 - Extra Python dependency
 - Last meaningful upstream activity around 2023
-- Unnecessary when `git` + AWS CLI v2 already support CodeCommit HTTPS
+- Unnecessary when `git` + AWS CLI v2 already support CodeCommit HTTPS with the
+  credential helper above
 
 ### What the script does
 
@@ -112,3 +138,10 @@ source ~/.bashrc
 | 0 | No effective `manager` / `manager-core` helper, or `--migrate` succeeded |
 | 1 | Effective manager still active — see Recommendation (`--fix-system` or `--migrate`) |
 | 2 | Usage error, missing `~/.gitconfig`/`~/.bashrc` for migrate, or unexpected failure |
+
+### References
+
+- [Setting up for AWS CodeCommit](https://docs.aws.amazon.com/codecommit/latest/userguide/setting-up.html)
+- [HTTPS with git-remote-codecommit (GRC)](https://docs.aws.amazon.com/codecommit/latest/userguide/setting-up-git-remote-codecommit.html)
+- [HTTPS on Linux/macOS/Unix (credential helper)](https://docs.aws.amazon.com/codecommit/latest/userguide/setting-up-https-unixes.html)
+- [HTTPS on Windows (credential helper)](https://docs.aws.amazon.com/codecommit/latest/userguide/setting-up-https-windows.html)
