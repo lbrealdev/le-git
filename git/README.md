@@ -101,6 +101,18 @@ List your local `git` configuration:
 git config --local -l
 ```
 
+#### check system credential.helper (Git Bash)
+
+Audit system/global `credential.helper` and remediate a locked
+`manager` helper when needed:
+
+```shell
+./git/scripts/check-gitconfig.sh
+```
+
+See [scripts/README.md](scripts/README.md) for `--fix-system`, `--migrate`, and
+the `GIT_CONFIG_NOSYSTEM` fallback policy.
+
 #### global config repositories
 
 Setting your Git username for every repository on your computer:
