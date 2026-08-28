@@ -2,9 +2,37 @@
 
 set -euo pipefail
 
+print_help() {
+  cat <<EOF
+Usage: $(basename "$0") <create|delete> <owner>/<repository> <branches>
+
+Create or delete GitHub branch protection rules via the REST API.
+
+Arguments:
+  create|delete   Action
+  owner/repo      Repository
+  branches        Comma-separated names (main or "main,develop")
+
+Options:
+  -h, --help      Show this help and exit
+EOF
+}
+
+case "${1:-}" in
+  -h|--help)
+    print_help
+    exit 0
+    ;;
+esac
+
 if [ "$#" -ne 3 ]; then
-  echo "Usage: ./$(basename "$0") <create|delete> <owner>/<repository-name> <branches>"
+  print_help >&2
   exit 1
+fi
+
+if [[ -z "${GITHUB_AUTH_TOKEN:-}" ]]; then
+  printf 'ERROR: GITHUB_AUTH_TOKEN is not set\n' >&2
+  exit 2
 fi
 
 GITHUB_API_URL="https://api.github.com"
@@ -70,5 +98,6 @@ elif [ "$ACTION" == "delete" ]; then
     delete_branch_protection "$GITHUB_REPO" "$branch"
   done
 else
-  echo "Invalid option: $ACTION. Use 'create' or 'delete'."
+  printf 'Invalid option: %s. Use create or delete.\n' "$ACTION" >&2
+  exit 1
 fi

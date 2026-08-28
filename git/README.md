@@ -101,6 +101,10 @@ List your local `git` configuration:
 git config --local -l
 ```
 
+Read-only helpers for `credential.helper` and default-branch (`main` vs
+`master`) live in [scripts/README.md](scripts/README.md). AWS CodeCommit
+HTTPS gitconfig setup is in `lbrealdev/0k-aws` (`dev-tools/codecommit/`).
+
 #### global config repositories
 
 Setting your Git username for every repository on your computer:

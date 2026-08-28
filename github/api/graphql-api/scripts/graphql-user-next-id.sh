@@ -2,13 +2,32 @@
 
 set -euo pipefail
 
-usage() {
-    echo "Usage: $0 <login>"
-    exit 1
+print_help() {
+  cat <<EOF
+Usage: $(basename "$0") <login>
+
+Print the GitHub GraphQL legacy and next-global IDs for a user login.
+
+Options:
+  -h, --help    Show this help and exit
+EOF
 }
 
+case "${1:-}" in
+  -h|--help)
+    print_help
+    exit 0
+    ;;
+esac
+
 if [ "$#" -lt 1 ]; then
-  usage
+  print_help >&2
+  exit 1
+fi
+
+if [[ -z "${GITHUB_AUTH_TOKEN:-}" ]]; then
+  printf 'ERROR: GITHUB_AUTH_TOKEN is not set\n' >&2
+  exit 2
 fi
 
 GITHUB_TOKEN="$GITHUB_AUTH_TOKEN"

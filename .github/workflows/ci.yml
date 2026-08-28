@@ -1,0 +1,35 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [master]
+
+permissions:
+  contents: read
+
+jobs:
+  scripts:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        with:
+          persist-credentials: false
+
+      - name: bash -n (all *.sh)
+        run: |
+          set -euo pipefail
+          mapfile -t files < <(find . -type f -name '*.sh' -not -path './.git/*' | sort)
+          for f in "${files[@]}"; do
+            bash -n "$f"
+          done
+
+      - name: Install ShellCheck
+        run: sudo apt-get update && sudo apt-get install -y shellcheck
+
+      - name: shellcheck git/scripts
+        run: |
+          set -euo pipefail
+          mapfile -t files < <(find git/scripts -type f -name '*.sh' | sort)
+          shellcheck -x --severity=warning "${files[@]}"
