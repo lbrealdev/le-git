@@ -11,13 +11,17 @@ Scripts are wired through [`just`](https://github.com/casey/just):
 
 ```shell
 just --list
+just --list git
 just --list rest
 just --list gql
+just check
 ```
 
 Example:
 
 ```shell
+just git credential-audit
+just git default-branch
 just rest repo-branch-rule create my-repo main
 just gql next-id <github-login>
 ```
@@ -28,6 +32,7 @@ just gql next-id <github-login>
 
 - [Git commands](git/README.md)
 - [Tricks and tips](git/git-tricks.md)
+- [Git scripts](git/scripts/README.md)
 
 ### GitHub
 

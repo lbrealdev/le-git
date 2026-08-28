@@ -1,5 +1,12 @@
 # GitHub Actions
 
+### Scripts
+
+Self-hosted runner cleanup (destructive; inspect before running):
+
+- [`scripts/runner-cleanup-workflow-dir.sh`](scripts/runner-cleanup-workflow-dir.sh) — empty `_work/`
+- [`scripts/runner-cleanup-docker.sh`](scripts/runner-cleanup-docker.sh) — `docker rm -f` all containers
+
 ### Guides
 
 - [Github Actions Workflows](github_actions_workflows.md)

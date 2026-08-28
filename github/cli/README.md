@@ -5,6 +5,10 @@
 - https://cli.github.com/
 - https://cli.github.com/manual/
 
+## Scripts
+
+- [`scripts/dependabot-pr.sh`](scripts/dependabot-pr.sh) — merge mergeable Dependabot PRs for `owner/repo` (**write**)
+
 ## Usage
 
 ### Installation

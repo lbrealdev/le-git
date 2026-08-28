@@ -56,7 +56,7 @@ fi
 
 MERGE_COUNT=0
 BLOCKED_COUNT=0
-BLOCKED_LIST=""
+blocked=()
 
 while read -r pr; do
   [[ -z "$pr" ]] && continue
@@ -65,21 +65,21 @@ while read -r pr; do
   status=$(echo "$pr" | jq -r '.mergeStateStatus')
 
   if [[ "$status" == "CLEAN" ]]; then
-    echo "Merging PR #$number..."
+    printf 'Merging PR #%s...\n' "$number"
     gh pr merge "$number" -R "$REPO" --merge --delete-branch
     ((MERGE_COUNT++)) || true
   else
-    BLOCKED_LIST+="- #$number: $status\n"
+    blocked+=("- #${number}: ${status}")
     ((BLOCKED_COUNT++)) || true
   fi
 done <<<"$PR_DATA"
 
 if [[ $MERGE_COUNT -gt 0 ]]; then
-  echo -e "\nMerged: $MERGE_COUNT PR(s)"
+  printf '\nMerged: %s PR(s)\n' "$MERGE_COUNT"
 fi
 
 if [[ $BLOCKED_COUNT -gt 0 ]]; then
-  echo -e "\nBlocked PRs:"
-  echo -e "$BLOCKED_LIST"
-  echo "Blocked: $BLOCKED_COUNT PR(s)"
+  printf '\nBlocked PRs:\n'
+  printf '%s\n' "${blocked[@]}"
+  printf 'Blocked: %s PR(s)\n' "$BLOCKED_COUNT"
 fi
