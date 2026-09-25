@@ -17,5 +17,5 @@ just git default-branch
 On Windows / Git Bash (LF vs CRLF, GCM pointers): see
 [windows-git-bash.md](../windows-git-bash.md).
 
-AWS CodeCommit HTTPS gitconfig setup (system GCM, `--replace-system` /
+AWS CodeCommit HTTPS gitconfig setup (system GCM, `--fix-system` /
 `--migrate`) lives in `lbrealdev/0k-aws` under `dev-tools/codecommit/`.
