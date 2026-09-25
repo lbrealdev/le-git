@@ -76,6 +76,8 @@ CI runs the same `bash -n` pass and shellchecks `git/scripts/*.sh`.
   area
 - New helpers get a bullet in `git/scripts/README.md` (or the area's
   `scripts/README.md`) with **read-only** vs **write**
+- Windows / Git Bash / LF–CRLF guidance:
+  [`git/windows-git-bash.md`](git/windows-git-bash.md)
 - Do not put credentials, PATs, or live account IDs in docs; sanitize
   examples
 

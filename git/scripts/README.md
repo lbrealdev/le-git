@@ -14,5 +14,8 @@ just git default-branch
 | `git-credential-helper-audit.sh` | read-only | Report `credential.helper` at system/global/local/effective scopes; flag GCM manager helpers |
 | `git-default-branch-check.sh` | read-only | Compare current branch to `origin/HEAD`; hint when both `main` and `master` exist |
 
-AWS CodeCommit HTTPS gitconfig setup (system GCM, `--fix-system` /
+On Windows / Git Bash (LF vs CRLF, GCM pointers): see
+[windows-git-bash.md](../windows-git-bash.md).
+
+AWS CodeCommit HTTPS gitconfig setup (system GCM, `--replace-system` /
 `--migrate`) lives in `lbrealdev/0k-aws` under `dev-tools/codecommit/`.

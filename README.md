@@ -32,6 +32,7 @@ just gql next-id <github-login>
 
 - [Git commands](git/README.md)
 - [Tricks and tips](git/git-tricks.md)
+- [Windows / Git Bash](git/windows-git-bash.md)
 - [Git scripts](git/scripts/README.md)
 
 ### GitHub
