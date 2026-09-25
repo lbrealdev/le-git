@@ -19,9 +19,6 @@ older API POCs.
 - `github/` — GitHub topic notes plus REST/GraphQL/CLI/Actions scripts
 - Root [`justfile`](justfile) modules: `rest`, `gql`, `git`
 
-AWS CodeCommit HTTPS gitconfig (GCM / credential-helper migrate) lives in
-`lbrealdev/0k-aws` under `dev-tools/codecommit/`. Do not re-add it here.
-
 ## Scripts
 
 - Use `#!/bin/bash` and `set -euo pipefail` (some older helpers use
@@ -76,6 +73,8 @@ CI runs the same `bash -n` pass and shellchecks `git/scripts/*.sh`.
   area
 - New helpers get a bullet in `git/scripts/README.md` (or the area's
   `scripts/README.md`) with **read-only** vs **write**
+- Windows / Git Bash / LF–CRLF guidance:
+  [`git/windows-git-bash.md`](git/windows-git-bash.md)
 - Do not put credentials, PATs, or live account IDs in docs; sanitize
   examples
 
