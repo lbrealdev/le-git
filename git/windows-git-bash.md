@@ -1,8 +1,8 @@
 # Git on Windows / Git Bash
 
 Notes for **Git for Windows** and **Git Bash** (not a WSL-only setup).
-Goal: keep LF in the repo, avoid surprise CRLF churn, and know where GCM /
-CodeCommit config lives.
+Goal: keep LF in the repo, avoid surprise CRLF churn, and know where GCM
+config lives.
 
 ## Line endings: recommended config
 
@@ -73,7 +73,7 @@ the block below as a **copy-paste example** for other projects:
 *.zip binary
 ```
 
-## Credentials (GCM) and CodeCommit
+## Credentials (GCM)
 
 On Windows, Git Credential Manager (GCM) is the usual helper. Audit what
 Git is using:
@@ -85,9 +85,6 @@ just git credential-audit
 ```
 
 Details: [git/scripts/README.md](scripts/README.md).
-
-AWS CodeCommit HTTPS gitconfig (GCM / credential-helper migrate) lives in
-`lbrealdev/0k-aws` under `dev-tools/codecommit/` — not in this repo.
 
 ## Checklist
 

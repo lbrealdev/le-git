@@ -102,8 +102,7 @@ git config --local -l
 ```
 
 Read-only helpers for `credential.helper` and default-branch (`main` vs
-`master`) live in [scripts/README.md](scripts/README.md). AWS CodeCommit
-HTTPS gitconfig setup is in `lbrealdev/0k-aws` (`dev-tools/codecommit/`).
+`master`) live in [scripts/README.md](scripts/README.md).
 
 Windows / Git Bash EOL notes (`core.autocrlf`, LF vs CRLF, optional
 `.gitattributes` examples): [windows-git-bash.md](windows-git-bash.md).

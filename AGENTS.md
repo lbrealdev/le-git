@@ -19,9 +19,6 @@ older API POCs.
 - `github/` — GitHub topic notes plus REST/GraphQL/CLI/Actions scripts
 - Root [`justfile`](justfile) modules: `rest`, `gql`, `git`
 
-AWS CodeCommit HTTPS gitconfig (GCM / credential-helper migrate) lives in
-`lbrealdev/0k-aws` under `dev-tools/codecommit/`. Do not re-add it here.
-
 ## Scripts
 
 - Use `#!/bin/bash` and `set -euo pipefail` (some older helpers use
