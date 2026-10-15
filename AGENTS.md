@@ -14,6 +14,9 @@ older API POCs.
 
 ## Layout
 
+- `scripts/` — top-level helpers that are not tied to one `git/` or
+  `github/` topic (e.g. fresh-dest repo migration via `TARGET_TOKEN`,
+  optional `SOURCE_TOKEN`)
 - `git/` — command notes (`README.md`, `git-tricks.md`) and helpers in
   `git/scripts/`
 - `github/` — GitHub topic notes plus REST/GraphQL/CLI/Actions scripts
@@ -62,20 +65,21 @@ strings are untrusted for terminal output.
 
 Before opening a PR that touches scripts:
 
-- `just check` (`bash -n` all `*.sh`; `shellcheck` on `git/scripts/` when
-  `shellcheck` is on `PATH`)
+- `just check` (`bash -n` all `*.sh`; `shellcheck` on `git/scripts/` and
+  `scripts/` when `shellcheck` is on `PATH`)
 - `bash -n path/to/script.sh`
 - `shellcheck path/to/script.sh` when `shellcheck` is on `PATH` (zero
   findings for new helpers)
 
-CI runs the same `bash -n` pass and shellchecks `git/scripts/*.sh`.
+CI runs the same `bash -n` pass and shellchecks `git/scripts/*.sh` and
+`scripts/*.sh`.
 
 ## Docs
 
 - Root `README.md` is the map; directory `README.md` files index that
   area
-- New helpers get a bullet in `git/scripts/README.md` (or the area's
-  `scripts/README.md`) with **read-only** vs **write**
+- New helpers get a bullet in `scripts/README.md`, `git/scripts/README.md`,
+  or the area's `scripts/README.md` with **read-only** vs **write**
 - Do not put credentials, PATs, or live account IDs in docs; sanitize
   examples
 

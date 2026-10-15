@@ -5,7 +5,7 @@ mod git 'git/git.just'
 @setup:
     pre-commit install
 
-# bash -n all *.sh; shellcheck git/scripts when available
+# bash -n all *.sh; shellcheck git/scripts and scripts/ when available
 check:
     #!/usr/bin/env bash
     set -euo pipefail
@@ -15,10 +15,12 @@ check:
       printf 'bash -n OK %s\n' "$f"
     done
     if shellcheck --version >/dev/null 2>&1; then
-      mapfile -t git_scripts < <(find git/scripts -type f -name '*.sh' | sort)
-      if ((${#git_scripts[@]} > 0)); then
-        shellcheck -x --severity=warning "${git_scripts[@]}"
+      mapfile -t check_scripts < <(
+        find git/scripts scripts -type f -name '*.sh' 2>/dev/null | sort
+      )
+      if ((${#check_scripts[@]} > 0)); then
+        shellcheck -x --severity=warning "${check_scripts[@]}"
       fi
     else
-      printf 'shellcheck not on PATH; skipped git/scripts\n' >&2
+      printf 'shellcheck not on PATH; skipped git/scripts and scripts/\n' >&2
     fi
