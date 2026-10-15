@@ -57,6 +57,13 @@ basic_auth_header() {
   printf 'AUTHORIZATION: basic %s' "$b64"
 }
 
+# Non-interactive HTTPS git: no credential helpers / GCM login dialogs.
+# Keep token auth via http.extraHeader only (never URL / config / print).
+git_https() {
+  GIT_TERMINAL_PROMPT=0 GCM_INTERACTIVE=never \
+    git -c credential.helper= "$@"
+}
+
 require_owner_repo() {
   local value="$1"
   local label="$2"
@@ -280,7 +287,7 @@ clone_source() {
   if [[ -n "${SOURCE_TOKEN:-}" ]]; then
     log "Cloning source (depth 1, SOURCE_TOKEN)..."
     header="$(basic_auth_header "$SOURCE_TOKEN")"
-    if ! git -c "http.extraHeader=${header}" clone --depth 1 \
+    if ! git_https -c "http.extraHeader=${header}" clone --depth 1 \
       "https://github.com/${SOURCE_REPO}.git" "${TMPDIR_PATH}/src" \
       > /dev/null 2> "$clone_err"; then
       cat "$clone_err" >&2 || true
@@ -292,7 +299,7 @@ clone_source() {
   fi
 
   log "Cloning source (depth 1, anonymous HTTPS)..."
-  if ! git clone --depth 1 "https://github.com/${SOURCE_REPO}.git" \
+  if ! git_https clone --depth 1 "https://github.com/${SOURCE_REPO}.git" \
     "${TMPDIR_PATH}/src" > /dev/null 2> "$clone_err"; then
     cat "$clone_err" >&2 || true
     err "failed to clone source: ${SOURCE_REPO}"
@@ -317,7 +324,7 @@ push_dest_token() {
   git remote remove origin > /dev/null 2>&1 || true
   git remote add origin "https://github.com/${DEST_REPO}.git"
 
-  if ! git -c "http.extraHeader=${header}" \
+  if ! git_https -c "http.extraHeader=${header}" \
     push -u origin main > /dev/null 2> "$push_err"; then
     cat "$push_err" >&2 || true
     err "failed to push main to ${DEST_REPO}"
@@ -340,7 +347,9 @@ create_and_push_gh() {
   fi
 
   push_err="${TMPDIR_PATH}/push.err"
-  if ! gh repo create "$DEST_REPO" "$visibility_flag" --source . --push \
+  # Env only: gh may invoke git push; never prompt via GCM.
+  if ! GIT_TERMINAL_PROMPT=0 GCM_INTERACTIVE=never \
+    gh repo create "$DEST_REPO" "$visibility_flag" --source . --push \
     > /dev/null 2> "$push_err"; then
     cat "$push_err" >&2 || true
     err "failed to create or push destination: ${DEST_REPO}"
