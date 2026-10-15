@@ -1,6 +1,7 @@
 #!/bin/bash
-# Write: copy a public GitHub repo's default branch into a new repo as one
-# fresh commit. Destination auth via DST_TOKEN (preferred) or gh fallback.
+# Write: copy a GitHub repo's default branch into a new repo as one fresh
+# commit. Destination auth via TARGET_TOKEN (preferred) or gh fallback.
+# Optional SOURCE_TOKEN for private source clones.
 
 set -euo pipefail
 
@@ -24,8 +25,8 @@ Options:
   -h, --help    Show this help and exit
 
 Auth (destination only):
-  Preferred: export DST_TOKEN to a GitHub token that can create the dest.
-  Fallback:  if DST_TOKEN is unset, use an authenticated gh CLI.
+  Preferred: export TARGET_TOKEN to a GitHub token that can create the dest.
+  Fallback:  if TARGET_TOKEN is unset, use an authenticated gh CLI.
 
 Exit codes:
   0  Migration succeeded
@@ -45,6 +46,15 @@ cleanup() {
 
 row() {
   printf '%-14s %s\n' "$1" "$2"
+}
+
+# Build a one-shot Git HTTPS basic-auth header from a token.
+# Never print the result; caller passes it only to git -c.
+basic_auth_header() {
+  local token="$1"
+  local b64
+  b64="$(printf 'x-access-token:%s' "$token" | base64 | tr -d '\n')"
+  printf 'AUTHORIZATION: basic %s' "$b64"
 }
 
 require_owner_repo() {
@@ -125,14 +135,14 @@ require_tools_and_auth() {
     exit 2
   fi
 
-  if [[ -n "${DST_TOKEN:-}" ]]; then
+  if [[ -n "${TARGET_TOKEN:-}" ]]; then
     AUTH_MODE="token"
     if ! command -v curl > /dev/null 2>&1; then
-      err "curl is not installed or not on PATH (required with DST_TOKEN)"
+      err "curl is not installed or not on PATH (required with TARGET_TOKEN)"
       exit 2
     fi
     if ! command -v jq > /dev/null 2>&1; then
-      err "jq is not installed or not on PATH (required with DST_TOKEN)"
+      err "jq is not installed or not on PATH (required with TARGET_TOKEN)"
       exit 2
     fi
     return 0
@@ -144,21 +154,21 @@ require_tools_and_auth() {
   fi
 
   err "No destination credentials."
-  err "Export DST_TOKEN to a GitHub token that can create ${DEST_REPO},"
+  err "Export TARGET_TOKEN to a GitHub token that can create ${DEST_REPO},"
   err "or install/authenticate gh (gh auth login / gh auth switch)."
   exit 2
 }
 
 api_json() {
   # Usage: api_json METHOD URL [curl -d payload...]
-  # Prints response body on stdout. Uses DST_TOKEN; never prints it.
+  # Prints response body on stdout. Uses TARGET_TOKEN; never prints it.
   local method="$1"
   local url="$2"
   shift 2
   curl -sS \
     -X "$method" \
     -H "Accept: application/vnd.github+json" \
-    -H "Authorization: Bearer ${DST_TOKEN}" \
+    -H "Authorization: Bearer ${TARGET_TOKEN}" \
     -H "X-GitHub-Api-Version: 2022-11-28" \
     "$@" \
     "$url"
@@ -175,7 +185,7 @@ dest_exists_token() {
   code="$(
     curl -sS -o /dev/null -w '%{http_code}' \
       -H "Accept: application/vnd.github+json" \
-      -H "Authorization: Bearer ${DST_TOKEN}" \
+      -H "Authorization: Bearer ${TARGET_TOKEN}" \
       -H "X-GitHub-Api-Version: 2022-11-28" \
       "https://api.github.com/repos/${DEST_REPO}"
   )"
@@ -248,36 +258,98 @@ create_dest_token() {
   fi
 }
 
+is_workflow_scope_rejection() {
+  local log_file="$1"
+  grep -Eiq \
+    'workflow.*scope|without `workflow`|refusing to allow.*(workflow|Personal Access Token to create or update workflow)' \
+    "$log_file"
+}
+
+print_workflow_scope_fix() {
+  err "Push rejected: token cannot write files under .github/workflows/."
+  err "Fix TARGET_TOKEN scopes, then retry (destination may already exist):"
+  err "  classic PAT:    repo + workflow"
+  err "  fine-grained:   Contents (read/write), Workflows (read/write),"
+  err "                  plus Administration (for repository creation)"
+}
+
+clone_source() {
+  local clone_err header
+  clone_err="${TMPDIR_PATH}/clone.err"
+
+  if [[ -n "${SOURCE_TOKEN:-}" ]]; then
+    log "Cloning source (depth 1, SOURCE_TOKEN)..."
+    header="$(basic_auth_header "$SOURCE_TOKEN")"
+    if ! git -c "http.extraHeader=${header}" clone --depth 1 \
+      "https://github.com/${SOURCE_REPO}.git" "${TMPDIR_PATH}/src" \
+      > /dev/null 2> "$clone_err"; then
+      cat "$clone_err" >&2 || true
+      err "failed to clone source: ${SOURCE_REPO}"
+      err "Check SOURCE_TOKEN access to the source repository."
+      exit 1
+    fi
+    return 0
+  fi
+
+  log "Cloning source (depth 1, anonymous HTTPS)..."
+  if ! git clone --depth 1 "https://github.com/${SOURCE_REPO}.git" \
+    "${TMPDIR_PATH}/src" > /dev/null 2> "$clone_err"; then
+    cat "$clone_err" >&2 || true
+    err "failed to clone source: ${SOURCE_REPO}"
+    if grep -Eiq \
+      'not found|Authentication failed|could not read Username|Invalid username or password|fatal: repository' \
+      "$clone_err"; then
+      err "If the source is private, export SOURCE_TOKEN and retry."
+    else
+      err "Source must be reachable anonymously, or set SOURCE_TOKEN."
+    fi
+    exit 1
+  fi
+}
+
 push_dest_token() {
   # One-shot credential via http.extraHeader. Never write the token into
   # git config/remote, and never print it.
-  local b64
-  b64="$(printf 'x-access-token:%s' "$DST_TOKEN" | base64 | tr -d '\n')"
+  local header push_err
+  header="$(basic_auth_header "$TARGET_TOKEN")"
+  push_err="${TMPDIR_PATH}/push.err"
 
   git remote remove origin > /dev/null 2>&1 || true
   git remote add origin "https://github.com/${DEST_REPO}.git"
 
-  if ! git -c "http.extraHeader=AUTHORIZATION: basic ${b64}" \
-    push -u origin main; then
+  if ! git -c "http.extraHeader=${header}" \
+    push -u origin main > /dev/null 2> "$push_err"; then
+    cat "$push_err" >&2 || true
     err "failed to push main to ${DEST_REPO}"
-    err "Check DST_TOKEN scopes (repo) and that the destination exists."
+    if is_workflow_scope_rejection "$push_err"; then
+      print_workflow_scope_fix
+    else
+      err "Check TARGET_TOKEN scopes and that the destination exists."
+    fi
     err "Refusing to force-push."
     exit 1
   fi
 }
 
 create_and_push_gh() {
-  local visibility_flag
+  local visibility_flag push_err
   if [[ "$VISIBILITY" == "public" ]]; then
     visibility_flag="--public"
   else
     visibility_flag="--private"
   fi
 
-  if ! gh repo create "$DEST_REPO" "$visibility_flag" --source . --push; then
+  push_err="${TMPDIR_PATH}/push.err"
+  if ! gh repo create "$DEST_REPO" "$visibility_flag" --source . --push \
+    > /dev/null 2> "$push_err"; then
+    cat "$push_err" >&2 || true
     err "failed to create or push destination: ${DEST_REPO}"
-    err "If auth is wrong, run: gh auth login / gh auth switch"
-    err "Or export DST_TOKEN instead."
+    if is_workflow_scope_rejection "$push_err"; then
+      print_workflow_scope_fix
+    else
+      err "If auth is wrong, run: gh auth login / gh auth switch"
+      err "Or export TARGET_TOKEN instead."
+    fi
     err "Destination must not already exist (no overwrite / force-push)."
     exit 1
   fi
@@ -299,6 +371,11 @@ main() {
   row "destination:" "$DEST_REPO"
   row "visibility:" "$VISIBILITY"
   row "auth:" "$AUTH_MODE"
+  if [[ -n "${SOURCE_TOKEN:-}" ]]; then
+    row "source-auth:" "SOURCE_TOKEN"
+  else
+    row "source-auth:" "anonymous"
+  fi
   log ""
 
   ensure_dest_absent
@@ -307,13 +384,7 @@ main() {
   row "workdir:" "$TMPDIR_PATH"
 
   log ""
-  log "Cloning public source (depth 1, anonymous HTTPS)..."
-  if ! git clone --depth 1 "https://github.com/${SOURCE_REPO}.git" \
-    "${TMPDIR_PATH}/src"; then
-    err "failed to clone source: ${SOURCE_REPO}"
-    err "Source must be a public GitHub repository reachable anonymously."
-    exit 1
-  fi
+  clone_source
 
   cd "${TMPDIR_PATH}/src"
   rm -rf .git
