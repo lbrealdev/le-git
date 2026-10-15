@@ -28,8 +28,14 @@ jobs:
       - name: Install ShellCheck
         run: sudo apt-get update && sudo apt-get install -y shellcheck
 
-      - name: shellcheck git/scripts
+      - name: shellcheck git/scripts and scripts
         run: |
           set -euo pipefail
-          mapfile -t files < <(find git/scripts -type f -name '*.sh' | sort)
+          mapfile -t files < <(
+            find git/scripts scripts -type f -name '*.sh' 2>/dev/null | sort
+          )
+          if ((${#files[@]} == 0)); then
+            echo "No scripts to shellcheck"
+            exit 0
+          fi
           shellcheck -x --severity=warning "${files[@]}"

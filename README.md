@@ -28,6 +28,10 @@ just gql next-id <github-login>
 
 ## Contents
 
+### Scripts
+
+- [Top-level scripts](scripts/README.md) — e.g. migrate a repo to a fresh single-commit `main`
+
 ### Git
 
 - [Git commands](git/README.md)
