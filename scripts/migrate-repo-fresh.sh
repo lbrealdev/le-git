@@ -48,20 +48,21 @@ row() {
   printf '%-14s %s\n' "$1" "$2"
 }
 
-# Build a one-shot Git HTTPS basic-auth header from a token.
-# Never print the result; caller passes it only to git -c.
-basic_auth_header() {
-  local token="$1"
-  local b64
-  b64="$(printf 'x-access-token:%s' "$token" | base64 | tr -d '\n')"
-  printf 'AUTHORIZATION: basic %s' "$b64"
-}
+# Never prompt: no terminal, askpass GUI, credential manager, or gh dialog.
+export GIT_TERMINAL_PROMPT=0 GCM_INTERACTIVE=never GCM_GUI_PROMPT=false
+export GIT_ASKPASS=/bin/false SSH_ASKPASS=/bin/false GH_PROMPT_DISABLED=1
 
-# Non-interactive HTTPS git: no credential helpers / GCM login dialogs.
-# Keep token auth via http.extraHeader only (never URL / config / print).
+# Non-interactive HTTPS git. The empty credential.helper resets inherited
+# helpers (e.g. manager); when GIT_AUTH_TOKEN is set, an inline helper reads
+# it from the env at call time (never in argv, URL, config, or output).
+# shellcheck disable=SC2016
 git_https() {
-  GIT_TERMINAL_PROMPT=0 GCM_INTERACTIVE=never \
-    git -c credential.helper= "$@"
+  local helper=()
+  if [[ -n "${GIT_AUTH_TOKEN:-}" ]]; then
+    helper=(-c 'credential.helper=!f(){ echo username=x-access-token; echo "password=${GIT_AUTH_TOKEN}"; }; f')
+  fi
+  git -c credential.helper= "${helper[@]}" \
+    -c credential.interactive=false -c core.askPass=/bin/false "$@"
 }
 
 require_owner_repo() {
@@ -281,13 +282,12 @@ print_workflow_scope_fix() {
 }
 
 clone_source() {
-  local clone_err header
+  local clone_err
   clone_err="${TMPDIR_PATH}/clone.err"
 
   if [[ -n "${SOURCE_TOKEN:-}" ]]; then
     log "Cloning source (depth 1, SOURCE_TOKEN)..."
-    header="$(basic_auth_header "$SOURCE_TOKEN")"
-    if ! git_https -c "http.extraHeader=${header}" clone --depth 1 \
+    if ! GIT_AUTH_TOKEN="$SOURCE_TOKEN" git_https clone --depth 1 \
       "https://github.com/${SOURCE_REPO}.git" "${TMPDIR_PATH}/src" \
       > /dev/null 2> "$clone_err"; then
       cat "$clone_err" >&2 || true
@@ -315,16 +315,14 @@ clone_source() {
 }
 
 push_dest_token() {
-  # One-shot credential via http.extraHeader. Never write the token into
-  # git config/remote, and never print it.
-  local header push_err
-  header="$(basic_auth_header "$TARGET_TOKEN")"
+  # Token via env-backed inline helper. Never written to config/remote/output.
+  local push_err
   push_err="${TMPDIR_PATH}/push.err"
 
   git remote remove origin > /dev/null 2>&1 || true
   git remote add origin "https://github.com/${DEST_REPO}.git"
 
-  if ! git_https -c "http.extraHeader=${header}" \
+  if ! GIT_AUTH_TOKEN="$TARGET_TOKEN" git_https \
     push -u origin main > /dev/null 2> "$push_err"; then
     cat "$push_err" >&2 || true
     err "failed to push main to ${DEST_REPO}"
@@ -347,10 +345,11 @@ create_and_push_gh() {
   fi
 
   push_err="${TMPDIR_PATH}/push.err"
-  # Env only: gh may invoke git push; never prompt via GCM.
-  if ! GIT_TERMINAL_PROMPT=0 GCM_INTERACTIVE=never \
-    gh repo create "$DEST_REPO" "$visibility_flag" --source . --push \
-    > /dev/null 2> "$push_err"; then
+  # Create with gh, then push through git_https with gh's token.
+  if ! gh repo create "$DEST_REPO" "$visibility_flag" > /dev/null 2> "$push_err" ||
+    ! git remote add origin "https://github.com/${DEST_REPO}.git" 2>> "$push_err" ||
+    ! GIT_AUTH_TOKEN="$(gh auth token)" git_https push -u origin main \
+      > /dev/null 2>> "$push_err"; then
     cat "$push_err" >&2 || true
     err "failed to create or push destination: ${DEST_REPO}"
     if is_workflow_scope_rejection "$push_err"; then
