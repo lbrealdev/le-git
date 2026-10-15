@@ -1,30 +1,36 @@
 #!/bin/bash
-# Write: copy a GitHub repo's default branch into a new repo as one fresh commit.
+# Write: copy a public GitHub repo's default branch into a new repo as one
+# fresh commit. Destination auth via DST_TOKEN (preferred) or gh fallback.
 
 set -euo pipefail
 
 TMPDIR_PATH=""
+AUTH_MODE=""
 
 print_help() {
   cat << EOF
 Usage: $(basename "$0") <source-owner/repo> <dest-owner/repo> [--public]
 
-Migrate a GitHub repository's default branch into a NEW repository with
-identical tree content but a single fresh commit on main (no history,
+Migrate a PUBLIC GitHub repository's default branch into a NEW repository
+with identical tree content but a single fresh commit on main (no history,
 no issues/PRs). Destination is private unless --public is passed.
 
 Arguments:
-  source-owner/repo   Existing repository to copy from
+  source-owner/repo   Public repository to copy from (anonymous HTTPS)
   dest-owner/repo     New repository to create (must not exist)
 
 Options:
   --public      Create the destination as a public repository
   -h, --help    Show this help and exit
 
+Auth (destination only):
+  Preferred: export DST_TOKEN to a GitHub token that can create the dest.
+  Fallback:  if DST_TOKEN is unset, use an authenticated gh CLI.
+
 Exit codes:
   0  Migration succeeded
   1  Runtime failure (clone, create, push, or destination exists)
-  2  Usage error, or git/gh missing or unauthenticated
+  2  Usage error, missing tools, or no destination credentials
 EOF
 }
 
@@ -38,7 +44,6 @@ cleanup() {
 }
 
 row() {
-  # Aligned key/value line: fixed 14-char label column.
   printf '%-14s %s\n' "$1" "$2"
 }
 
@@ -100,22 +105,14 @@ parse_args() {
     err "source and destination must differ"
     exit 2
   fi
+
+  DEST_OWNER="${DEST_REPO%%/*}"
+  DEST_NAME="${DEST_REPO#*/}"
 }
 
-require_tools() {
+require_tools_and_auth() {
   if ! command -v git > /dev/null 2>&1; then
     err "git is not installed or not on PATH"
-    exit 2
-  fi
-  if ! command -v gh > /dev/null 2>&1; then
-    err "gh is not installed or not on PATH"
-    err "Install GitHub CLI, then run: gh auth login"
-    exit 2
-  fi
-  if ! gh auth status > /dev/null 2>&1; then
-    err "gh is not authenticated for the destination account"
-    err "Run: gh auth login"
-    err "Or switch account: gh auth switch"
     exit 2
   fi
 
@@ -127,10 +124,163 @@ require_tools() {
     err "Configure your identity, then retry."
     exit 2
   fi
+
+  if [[ -n "${DST_TOKEN:-}" ]]; then
+    AUTH_MODE="token"
+    if ! command -v curl > /dev/null 2>&1; then
+      err "curl is not installed or not on PATH (required with DST_TOKEN)"
+      exit 2
+    fi
+    if ! command -v jq > /dev/null 2>&1; then
+      err "jq is not installed or not on PATH (required with DST_TOKEN)"
+      exit 2
+    fi
+    return 0
+  fi
+
+  if command -v gh > /dev/null 2>&1 && gh auth status > /dev/null 2>&1; then
+    AUTH_MODE="gh"
+    return 0
+  fi
+
+  err "No destination credentials."
+  err "Export DST_TOKEN to a GitHub token that can create ${DEST_REPO},"
+  err "or install/authenticate gh (gh auth login / gh auth switch)."
+  exit 2
 }
 
-dest_exists() {
+api_json() {
+  # Usage: api_json METHOD URL [curl -d payload...]
+  # Prints response body on stdout. Uses DST_TOKEN; never prints it.
+  local method="$1"
+  local url="$2"
+  shift 2
+  curl -sS \
+    -X "$method" \
+    -H "Accept: application/vnd.github+json" \
+    -H "Authorization: Bearer ${DST_TOKEN}" \
+    -H "X-GitHub-Api-Version: 2022-11-28" \
+    "$@" \
+    "$url"
+}
+
+token_user_login() {
+  local body
+  body="$(api_json GET "https://api.github.com/user")"
+  jq -er '.login' <<< "$body"
+}
+
+dest_exists_token() {
+  local code
+  code="$(
+    curl -sS -o /dev/null -w '%{http_code}' \
+      -H "Accept: application/vnd.github+json" \
+      -H "Authorization: Bearer ${DST_TOKEN}" \
+      -H "X-GitHub-Api-Version: 2022-11-28" \
+      "https://api.github.com/repos/${DEST_REPO}"
+  )"
+  case "$code" in
+    200) return 0 ;;
+    404) return 1 ;;
+    *)
+      err "failed to check destination (${DEST_REPO}): HTTP ${code}"
+      exit 1
+      ;;
+  esac
+}
+
+dest_exists_gh() {
   gh repo view "$DEST_REPO" > /dev/null 2>&1
+}
+
+ensure_dest_absent() {
+  local exists=1
+  if [[ "$AUTH_MODE" == "token" ]]; then
+    if dest_exists_token; then
+      exists=0
+    fi
+  else
+    if dest_exists_gh; then
+      exists=0
+    fi
+  fi
+
+  if [[ "$exists" -eq 0 ]]; then
+    err "destination already exists: ${DEST_REPO}"
+    err "Refusing to overwrite or force-push. Choose a new name."
+    exit 1
+  fi
+}
+
+create_dest_token() {
+  local token_user private_json endpoint payload body message
+  token_user="$(token_user_login)"
+  if [[ "$VISIBILITY" == "public" ]]; then
+    private_json="false"
+  else
+    private_json="true"
+  fi
+
+  payload="$(
+    jq -nc --arg name "$DEST_NAME" --argjson private "$private_json" \
+      '{name: $name, private: $private, auto_init: false}'
+  )"
+
+  if [[ "$DEST_OWNER" == "$token_user" ]]; then
+    endpoint="https://api.github.com/user/repos"
+  else
+    endpoint="https://api.github.com/orgs/${DEST_OWNER}/repos"
+  fi
+
+  body="$(api_json POST "$endpoint" -H "Content-Type: application/json" -d "$payload")" || {
+    err "failed to create destination: ${DEST_REPO}"
+    exit 1
+  }
+
+  if ! jq -e '.id' <<< "$body" > /dev/null 2>&1; then
+    message="$(jq -r '.message // "unknown error"' <<< "$body" 2> /dev/null || true)"
+    err "failed to create destination: ${DEST_REPO}"
+    if [[ -n "$message" && "$message" != "null" ]]; then
+      err "${message}"
+    fi
+    err "Destination must not already exist (no overwrite / force-push)."
+    exit 1
+  fi
+}
+
+push_dest_token() {
+  # One-shot credential via http.extraHeader. Never write the token into
+  # git config/remote, and never print it.
+  local b64
+  b64="$(printf 'x-access-token:%s' "$DST_TOKEN" | base64 | tr -d '\n')"
+
+  git remote remove origin > /dev/null 2>&1 || true
+  git remote add origin "https://github.com/${DEST_REPO}.git"
+
+  if ! git -c "http.extraHeader=AUTHORIZATION: basic ${b64}" \
+    push -u origin main; then
+    err "failed to push main to ${DEST_REPO}"
+    err "Check DST_TOKEN scopes (repo) and that the destination exists."
+    err "Refusing to force-push."
+    exit 1
+  fi
+}
+
+create_and_push_gh() {
+  local visibility_flag
+  if [[ "$VISIBILITY" == "public" ]]; then
+    visibility_flag="--public"
+  else
+    visibility_flag="--private"
+  fi
+
+  if ! gh repo create "$DEST_REPO" "$visibility_flag" --source . --push; then
+    err "failed to create or push destination: ${DEST_REPO}"
+    err "If auth is wrong, run: gh auth login / gh auth switch"
+    err "Or export DST_TOKEN instead."
+    err "Destination must not already exist (no overwrite / force-push)."
+    exit 1
+  fi
 }
 
 count_files() {
@@ -139,7 +289,7 @@ count_files() {
 
 main() {
   parse_args "$@"
-  require_tools
+  require_tools_and_auth
 
   trap cleanup EXIT
 
@@ -148,23 +298,20 @@ main() {
   row "source:" "$SOURCE_REPO"
   row "destination:" "$DEST_REPO"
   row "visibility:" "$VISIBILITY"
+  row "auth:" "$AUTH_MODE"
   log ""
 
-  if dest_exists; then
-    err "destination already exists: ${DEST_REPO}"
-    err "Refusing to overwrite or force-push. Choose a new name."
-    exit 1
-  fi
+  ensure_dest_absent
 
   TMPDIR_PATH="$(mktemp -d "${TMPDIR:-/tmp}/migrate-repo-fresh.XXXXXX")"
   row "workdir:" "$TMPDIR_PATH"
 
   log ""
-  log "Cloning source (depth 1, default branch)..."
+  log "Cloning public source (depth 1, anonymous HTTPS)..."
   if ! git clone --depth 1 "https://github.com/${SOURCE_REPO}.git" \
     "${TMPDIR_PATH}/src"; then
     err "failed to clone source: ${SOURCE_REPO}"
-    err "Check that the repository exists and you have access."
+    err "Source must be a public GitHub repository reachable anonymously."
     exit 1
   fi
 
@@ -183,28 +330,16 @@ main() {
     exit 1
   fi
 
-  local visibility_flag
-  if [[ "$VISIBILITY" == "public" ]]; then
-    visibility_flag="--public"
-  else
-    visibility_flag="--private"
-  fi
-
   log ""
   log "Creating destination and pushing main..."
-  if ! gh repo create "$DEST_REPO" "$visibility_flag" --source . --push; then
-    err "failed to create or push destination: ${DEST_REPO}"
-    err "If auth is wrong for that account, run: gh auth login"
-    err "Or switch account: gh auth switch"
-    err "Destination must not already exist (no overwrite / force-push)."
-    exit 1
+  if [[ "$AUTH_MODE" == "token" ]]; then
+    create_dest_token
+    push_dest_token
+  else
+    create_and_push_gh
   fi
 
-  local dest_url
-  dest_url="$(gh repo view "$DEST_REPO" --json url -q .url 2> /dev/null || true)"
-  if [[ -z "$dest_url" ]]; then
-    dest_url="https://github.com/${DEST_REPO}"
-  fi
+  local dest_url="https://github.com/${DEST_REPO}"
 
   log ""
   row "url:" "$dest_url"
