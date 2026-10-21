@@ -28,6 +28,10 @@ just gql next-id <github-login>
 
 ## Contents
 
+### Scripts
+
+- [Top-level scripts](scripts/README.md) — e.g. `gh-repo-migrate.sh`
+
 ### Git
 
 - [Git commands](git/README.md)
