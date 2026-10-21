@@ -49,6 +49,9 @@ die_from_cmd() {
   if [[ -z "$msg" ]]; then
     msg="$(printf '%s\n' "$raw" | sed '/^$/d' | head -n 1)"
   fi
+  # Normalize "Repository. (HTTP 403)" / trailing "." before we append ". hint"
+  msg="$(printf '%s\n' "$msg" | sed 's/\. \((HTTP\)/ \1/')"
+  msg="${msg%.}"
   if [[ -n "$hint" && -n "$msg" ]]; then
     die "${prefix}: ${msg}. ${hint}"
   elif [[ -n "$hint" ]]; then
@@ -163,12 +166,13 @@ ensure_tools_and_auth() {
   if [[ -z "${GH_TOKEN:-}" ]]; then
     gh auth status >/dev/null 2>&1 || die "no token and gh is not logged in"
   fi
-  AUTH_USER="$(gh api user --jq .login 2>/dev/null || true)"
-  if [[ -z "$AUTH_USER" ]]; then
-    AUTH_USER="$(gh api graphql -f query='{viewer{login}}' --jq .data.viewer.login 2>/dev/null || true)"
+  AUTH_USER=''
+  if ! AUTH_USER="$(gh api user --jq .login 2>/dev/null)"; then
+    AUTH_USER="$(gh api graphql -f query='{viewer{login}}' --jq .data.viewer.login 2>/dev/null)" \
+      || AUTH_USER=''
   fi
+  [[ -n "$AUTH_USER" ]] || die "gh authentication failed"
   if [[ -z "$TARGET_OWNER" ]]; then
-    [[ -n "$AUTH_USER" ]] || die "could not resolve authenticated user"
     TARGET_OWNER="$AUTH_USER"
   fi
 }
@@ -389,6 +393,7 @@ mirror_push_refs() {
     done < <(git -C "$mirror" for-each-ref --format='%(refname)' refs/heads)
   else
     total="$(git -C "$mirror" for-each-ref --format='%(refname)' refs/heads refs/tags | wc -l | tr -d ' ')"
+    out "  Pushing to ${target} ..."
     errf="$(mktemp)"
     if ! git_gh -C "$mirror" push --mirror "https://github.com/${target}.git" 2>"$errf"; then
       die_from_cmd "failed to mirror-push to ${target}" "$errf"
@@ -398,6 +403,7 @@ mirror_push_refs() {
     return 0
   fi
   total=${#refspecs[@]}
+  out "  Pushing to ${target} ..."
   errf="$(mktemp)"
   if ! git_gh -C "$mirror" push "https://github.com/${target}.git" "${refspecs[@]}" 2>"$errf"; then
     die_from_cmd "failed to push selected refs to ${target}" "$errf"
@@ -412,6 +418,7 @@ do_mirror() {
   TMPDIR_PATH="$(mktemp -d)"
   trap cleanup EXIT
   mirror="${TMPDIR_PATH}/mirror.git"
+  out "  Cloning ${SOURCE} ..."
   errf="$(mktemp)"
   if ! git_gh clone --mirror "https://github.com/${SOURCE}.git" "$mirror" 2>"$errf"; then
     die_from_cmd "failed to mirror-clone ${SOURCE}" "$errf"
@@ -448,6 +455,7 @@ do_single() {
   TMPDIR_PATH="$(mktemp -d)"
   trap cleanup EXIT
   source_dir="${TMPDIR_PATH}/source"
+  out "  Cloning ${SOURCE} ..."
   errf="$(mktemp)"
   if ! git_gh clone --depth 1 --branch "$SOURCE_DEFAULT_BRANCH" \
     "https://github.com/${SOURCE}.git" "$source_dir" 2>"$errf"; then
@@ -474,6 +482,7 @@ do_single() {
   fi
   rm -f "$errf"
   ensure_target_repo
+  out "  Pushing to ${target} ..."
   errf="$(mktemp)"
   if ! git_gh -C "$source_dir" push "https://github.com/${target}.git" \
     "${sha}:refs/heads/${SOURCE_DEFAULT_BRANCH}" 2>"$errf"; then
