@@ -124,29 +124,31 @@ resolve_side_token() {
   return 1
 }
 
-# GitHub REST via curl. Auth header only in --config (never argv).
+# GitHub REST via curl. Auth header via --config on stdin (never argv or disk).
 # Usage: api_request TOKEN METHOD PATH [json_body]  -> body on stdout, 0 on 2xx.
 # On failure: HTTP status + body on stderr (caller redirects to errf).
 api_request() {
   local token="$1" method="$2" path="$3" body="${4:-}"
-  local out code conf bodyfile='' rc=0 msg
+  local out code bodyfile='' rc=0 msg
   out="$(mktemp)"
-  conf="$(mktemp)"
-  {
-    printf 'url = "https://api.github.com/%s"\n' "$path"
-    printf 'request = "%s"\n' "$method"
-    printf 'header = "Authorization: Bearer %s"\n' "$token"
-    printf 'header = "Accept: application/vnd.github+json"\n'
-    printf 'header = "X-GitHub-Api-Version: 2022-11-28"\n'
-    if [[ -n "$body" ]]; then
-      bodyfile="$(mktemp)"
-      printf '%s' "$body" >"$bodyfile"
-      printf 'header = "Content-Type: application/json"\n'
-      printf 'data-binary = "@%s"\n' "$bodyfile"
-    fi
-  } >"$conf"
-  code="$(curl -sS -o "$out" -w '%{http_code}' --config "$conf")" || rc=$?
-  rm -f "$conf"
+  if [[ -n "$body" ]]; then
+    bodyfile="$(mktemp)"
+    printf '%s' "$body" >"$bodyfile"
+  fi
+  # printf is a builtin; config (with Authorization) never lands in a temp file.
+  code="$(
+    {
+      printf 'url = "https://api.github.com/%s"\n' "$path"
+      printf 'request = "%s"\n' "$method"
+      printf 'header = "Authorization: Bearer %s"\n' "$token"
+      printf 'header = "Accept: application/vnd.github+json"\n'
+      printf 'header = "X-GitHub-Api-Version: 2022-11-28"\n'
+      if [[ -n "$bodyfile" ]]; then
+        printf 'header = "Content-Type: application/json"\n'
+        printf 'data-binary = "@%s"\n' "$bodyfile"
+      fi
+    } | curl -sS -o "$out" -w '%{http_code}' --config -
+  )" || rc=$?
   [[ -n "$bodyfile" ]] && rm -f "$bodyfile"
   if [[ "$rc" -ne 0 ]]; then
     printf 'curl: request failed\n' >&2
@@ -166,6 +168,12 @@ api_request() {
   return 0
 }
 
+# Drop nested parent/source/template_repository so sed sees top-level fields only.
+json_repo_flat() {
+  printf '%s' "$1" | tr '\n' ' ' \
+    | sed -E 's/"(parent|source|template_repository)"[[:space:]]*:.*//'
+}
+
 # Minimal JSON field helpers (jq when available; else sed for needed keys).
 json_str() {
   local json="$1" key="$2"
@@ -173,7 +181,7 @@ json_str() {
     printf '%s' "$json" | jq -r --arg k "$key" 'if .[$k] == null then empty else .[$k]|tostring end'
     return 0
   fi
-  printf '%s' "$json" | tr '\n' ' ' | sed -n "s/.*\"${key}\"[[:space:]]*:[[:space:]]*\"\\([^\"]*\\)\".*/\\1/p" | head -n 1
+  json_repo_flat "$json" | sed -n "s/.*\"${key}\"[[:space:]]*:[[:space:]]*\"\\([^\"]*\\)\".*/\\1/p" | head -n 1
 }
 
 json_bool() {
@@ -183,7 +191,7 @@ json_bool() {
     printf '%s' "$v"
     return 0
   fi
-  printf '%s' "$json" | tr '\n' ' ' | sed -n "s/.*\"${key}\"[[:space:]]*:[[:space:]]*\\(true\\|false\\).*/\\1/p" | head -n 1
+  json_repo_flat "$json" | sed -n "s/.*\"${key}\"[[:space:]]*:[[:space:]]*\\(true\\|false\\).*/\\1/p" | head -n 1
 }
 
 json_num() {
@@ -192,7 +200,7 @@ json_num() {
     printf '%s' "$json" | jq -r --arg k "$key" 'if .[$k] == null then empty else .[$k]|tostring end'
     return 0
   fi
-  printf '%s' "$json" | tr '\n' ' ' | sed -n "s/.*\"${key}\"[[:space:]]*:[[:space:]]*\\([0-9][0-9]*\\).*/\\1/p" | head -n 1
+  json_repo_flat "$json" | sed -n "s/.*\"${key}\"[[:space:]]*:[[:space:]]*\\([0-9][0-9]*\\).*/\\1/p" | head -n 1
 }
 
 json_permissions_admin() {
@@ -201,7 +209,7 @@ json_permissions_admin() {
     printf '%s' "$json" | jq -r '.permissions.admin // false'
     return 0
   fi
-  printf '%s' "$json" | tr '\n' ' ' \
+  json_repo_flat "$json" \
     | sed -n 's/.*"permissions"[[:space:]]*:[[:space:]]*{[^}]*"admin"[[:space:]]*:[[:space:]]*\(true\|false\).*/\1/p' \
     | head -n 1
 }
@@ -409,7 +417,6 @@ plan_create_or_reuse() {
     out "  ${i}. Reuse empty ${target}"
   else
     out "  ${i}. Create ${target} (${TARGET_VISIBILITY})"
-    step_cmd "create ${target} (${TARGET_VISIBILITY})"
   fi
 }
 
@@ -658,7 +665,12 @@ main() {
   parse_args "$@"
   ensure_tools_and_auth
   header
-  ok "authenticated"
+  if [[ -n "$SOURCE_USER" && -n "$AUTH_USER" ]]; then
+    ok "authenticated (SOURCE: ${SOURCE_USER}, TARGET: ${AUTH_USER})"
+  else
+    ok "authenticated"
+  fi
+
   source_meta
   if [[ "$(target_slug)" == "$SOURCE" ]]; then
     usage_die "source and target must differ."
