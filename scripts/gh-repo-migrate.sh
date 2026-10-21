@@ -21,7 +21,8 @@ TMPDIR_PATH=''
 BRANCHES=()
 
 out() { [[ "$QUIET" -eq 1 ]] || printf '%s\n' "$*"; }
-err() { printf 'error: %s\n' "$*" >&2; }
+# One blank line before every error: (separates status / prompt); never doubles.
+err() { printf '\nerror: %s\n' "$*" >&2; }
 die() { err "$1"; exit 1; }
 usage_die() { err "$1 Try --help."; exit 2; }
 ok() { out "  ok  $1"; }
@@ -29,6 +30,33 @@ warn() { out "  !!  $*"; }
 info() { out "  i   $*"; }
 step_cmd() { [[ "$VERBOSE" -eq 1 ]] && info "$*" || true; }
 target_slug() { printf '%s/%s' "$TARGET_OWNER" "$TARGET_NAME"; }
+
+# Fold captured child stderr into one error: line. With -v, print raw stderr first.
+die_from_cmd() {
+  local prefix="$1" errf="$2" hint="${3:-}" raw msg
+  raw="$(cat "$errf" 2>/dev/null || true)"
+  rm -f "$errf"
+  if [[ "$VERBOSE" -eq 1 && -n "$raw" ]]; then
+    printf '%s\n' "$raw" >&2
+  fi
+  msg="$(printf '%s\n' "$raw" | sed -n -e 's/^gh: //p' -e 's/^fatal: //p' | head -n 1)"
+  if [[ -z "$msg" ]]; then
+    msg="$(printf '%s\n' "$raw" | sed -n 's/.*"message"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' | head -n 1)"
+  fi
+  # gh repo create and some APIs print "HTTP NNN: ..." with no gh: prefix
+  if [[ -z "$msg" ]]; then
+    msg="$(printf '%s\n' "$raw" | sed '/^$/d' | head -n 1)"
+  fi
+  if [[ -n "$hint" && -n "$msg" ]]; then
+    die "${prefix}: ${msg}. ${hint}"
+  elif [[ -n "$hint" ]]; then
+    die "${prefix}: ${hint}"
+  elif [[ -n "$msg" ]]; then
+    die "${prefix}: ${msg}"
+  else
+    die "${prefix}"
+  fi
+}
 
 print_help() {
   cat <<'EOF'
@@ -168,13 +196,22 @@ confirm() {
 }
 
 source_meta() {
-  local private
-  private="$(gh api "repos/${SOURCE}" --jq .private)" || die "cannot read source ${SOURCE}"
+  local private admin errf meta
+  errf="$(mktemp)"
+  if ! meta="$(gh api "repos/${SOURCE}" \
+    --jq '[.private, .default_branch, (.permissions.admin // false)] | @tsv' 2>"$errf")"; then
+    die_from_cmd "cannot read source ${SOURCE}" "$errf"
+  fi
+  rm -f "$errf"
+  IFS=$'\t' read -r private SOURCE_DEFAULT_BRANCH admin <<<"$meta"
+  [[ -n "$SOURCE_DEFAULT_BRANCH" ]] || die "cannot read default branch of ${SOURCE}"
   if [[ "$private" == true ]]; then SOURCE_VISIBILITY=private; else SOURCE_VISIBILITY=public; fi
-  SOURCE_DEFAULT_BRANCH="$(gh api "repos/${SOURCE}" --jq .default_branch)" \
-    || die "cannot read default branch of ${SOURCE}"
   TARGET_VISIBILITY="${TARGET_VISIBILITY:-$SOURCE_VISIBILITY}"
   ok "source ${SOURCE} (${SOURCE_VISIBILITY})"
+  if [[ "$MODE" == transfer && "$admin" != true ]]; then
+    warn "no admin rights on ${SOURCE}"
+    die "transfer needs admin on the source. Try --mirror or --single-commit."
+  fi
 }
 
 # TARGET_EXISTS=0 free, 1 empty (resume). Dies on non-empty or auth errors.
@@ -182,10 +219,10 @@ check_target() {
   local target size refs errf
   target="$(target_slug)"
   errf="$(mktemp)"
-  if gh api "repos/${target}" >"$errf" 2>&1; then
-    size="$(gh api "repos/${target}" --jq .size)" || true
-    refs="$(git_gh ls-remote "https://github.com/${target}.git" 2>/dev/null || true)"
+  if gh api "repos/${target}" >/dev/null 2>"$errf"; then
     rm -f "$errf"
+    size="$(gh api "repos/${target}" --jq .size 2>/dev/null || true)"
+    refs="$(git_gh ls-remote "https://github.com/${target}.git" 2>/dev/null || true)"
     if [[ "${size:-1}" == 0 && -z "$refs" ]]; then
       TARGET_EXISTS=1
       ok "target ${target} exists and is empty (will resume)"
@@ -194,9 +231,7 @@ check_target() {
     die "target ${target} already exists and is not empty"
   fi
   if grep -qiE 'HTTP 403|HTTP 401|Bad credentials|rate limit' "$errf"; then
-    cat "$errf" >&2
-    rm -f "$errf"
-    die "cannot check target ${target}"
+    die_from_cmd "cannot check target ${target}" "$errf"
   fi
   rm -f "$errf"
   TARGET_EXISTS=0
@@ -267,39 +302,42 @@ print_plan() {
 }
 
 ensure_target_repo() {
-  local target vis_flag
+  local target vis_flag errf
   target="$(target_slug)"
   if [[ "$TARGET_EXISTS" -eq 1 ]]; then
     out "Resuming into empty ${target}."
     return 0
   fi
   [[ "$TARGET_VISIBILITY" == public ]] && vis_flag=--public || vis_flag=--private
-  gh repo create "$target" "$vis_flag" >/dev/null || die "failed to create ${target}"
+  errf="$(mktemp)"
+  if ! gh repo create "$target" "$vis_flag" >/dev/null 2>"$errf"; then
+    die_from_cmd "failed to create ${target}" "$errf"
+  fi
+  rm -f "$errf"
 }
 
 do_transfer() {
   local target args=() errf owner_type waited=0
   target="$(target_slug)"
-  owner_type="$(gh api "users/${TARGET_OWNER}" --jq .type)" \
-    || die "cannot resolve owner type for ${TARGET_OWNER}"
+  errf="$(mktemp)"
+  if ! owner_type="$(gh api "users/${TARGET_OWNER}" --jq .type 2>"$errf")"; then
+    die_from_cmd "cannot resolve owner type for ${TARGET_OWNER}" "$errf"
+  fi
+  rm -f "$errf"
 
   args=(-X POST "repos/${SOURCE}/transfer" -f "new_owner=${TARGET_OWNER}")
   [[ "$TARGET_NAME" != "${SOURCE#*/}" ]] && args+=(-f "new_name=${TARGET_NAME}")
   errf="$(mktemp)"
   if ! gh api "${args[@]}" >/dev/null 2>"$errf"; then
     if grep -qiE '422|Validation Failed' "$errf"; then
-      cat "$errf" >&2
-      rm -f "$errf"
-      die "transfer failed: name clash or ${TARGET_OWNER} cannot receive it. Try --mirror or --single-commit."
+      die_from_cmd "transfer failed" "$errf" \
+        "Name clash or ${TARGET_OWNER} cannot receive it. Try --mirror or --single-commit."
     fi
     if grep -qiE '403|404|Resource not accessible|Not Found' "$errf"; then
-      cat "$errf" >&2
-      rm -f "$errf"
-      die "transfer failed (need admin on ${SOURCE}). Try --mirror or --single-commit."
+      die_from_cmd "transfer failed" "$errf" \
+        "Try --mirror or --single-commit."
     fi
-    cat "$errf" >&2
-    rm -f "$errf"
-    die "transfer failed"
+    die_from_cmd "transfer failed" "$errf"
   fi
   rm -f "$errf"
 
@@ -330,7 +368,7 @@ drop_pull_refs() {
 
 # One push of selected refs; remote.origin.mirror must be off for refspecs.
 mirror_push_refs() {
-  local mirror="$1" target="$2" b refspecs=() ref total=0
+  local mirror="$1" target="$2" b refspecs=() ref total=0 errf
   git -C "$mirror" config --unset-all remote.origin.mirror 2>/dev/null || true
   if ((${#BRANCHES[@]} > 0)); then
     for b in "${BRANCHES[@]}"; do
@@ -349,25 +387,34 @@ mirror_push_refs() {
     done < <(git -C "$mirror" for-each-ref --format='%(refname)' refs/heads)
   else
     total="$(git -C "$mirror" for-each-ref --format='%(refname)' refs/heads refs/tags | wc -l | tr -d ' ')"
-    git_gh -C "$mirror" push --mirror "https://github.com/${target}.git" \
-      || die "failed to mirror-push to ${target}"
+    errf="$(mktemp)"
+    if ! git_gh -C "$mirror" push --mirror "https://github.com/${target}.git" 2>"$errf"; then
+      die_from_cmd "failed to mirror-push to ${target}" "$errf"
+    fi
+    rm -f "$errf"
     out "  pushed: ${total}/${total} refs"
     return 0
   fi
   total=${#refspecs[@]}
-  git_gh -C "$mirror" push "https://github.com/${target}.git" "${refspecs[@]}" \
-    || die "failed to push selected refs to ${target}"
+  errf="$(mktemp)"
+  if ! git_gh -C "$mirror" push "https://github.com/${target}.git" "${refspecs[@]}" 2>"$errf"; then
+    die_from_cmd "failed to push selected refs to ${target}" "$errf"
+  fi
+  rm -f "$errf"
   out "  pushed: ${total}/${total} refs"
 }
 
 do_mirror() {
-  local target mirror branches_n tags_n attrs
+  local target mirror branches_n tags_n attrs errf
   target="$(target_slug)"
   TMPDIR_PATH="$(mktemp -d)"
   trap cleanup EXIT
   mirror="${TMPDIR_PATH}/mirror.git"
-  git_gh clone --mirror "https://github.com/${SOURCE}.git" "$mirror" \
-    || die "failed to mirror-clone ${SOURCE}"
+  errf="$(mktemp)"
+  if ! git_gh clone --mirror "https://github.com/${SOURCE}.git" "$mirror" 2>"$errf"; then
+    die_from_cmd "failed to mirror-clone ${SOURCE}" "$errf"
+  fi
+  rm -f "$errf"
   drop_pull_refs "$mirror"
   attrs="$(git -C "$mirror" show HEAD:.gitattributes 2>/dev/null || true)"
   if [[ "$attrs" == *filter=lfs* ]]; then
@@ -394,14 +441,17 @@ commit_identity() {
 }
 
 do_single() {
-  local target source_dir sha name email attrs
+  local target source_dir sha name email attrs errf
   target="$(target_slug)"
   TMPDIR_PATH="$(mktemp -d)"
   trap cleanup EXIT
   source_dir="${TMPDIR_PATH}/source"
-  git_gh clone --depth 1 --branch "$SOURCE_DEFAULT_BRANCH" \
-    "https://github.com/${SOURCE}.git" "$source_dir" \
-    || die "failed to clone ${SOURCE}"
+  errf="$(mktemp)"
+  if ! git_gh clone --depth 1 --branch "$SOURCE_DEFAULT_BRANCH" \
+    "https://github.com/${SOURCE}.git" "$source_dir" 2>"$errf"; then
+    die_from_cmd "failed to clone ${SOURCE}" "$errf"
+  fi
+  rm -f "$errf"
   if [[ -f "${source_dir}/.gitmodules" ]]; then
     warn ".gitmodules present; submodules are not initialized"
   fi
@@ -413,14 +463,21 @@ do_single() {
     read -r name
     read -r email
   } < <(commit_identity)
-  sha="$(
+  errf="$(mktemp)"
+  if ! sha="$(
     git -C "$source_dir" -c user.name="$name" -c user.email="$email" \
-      commit-tree "HEAD^{tree}" -m "Initial commit"
-  )" || die "failed to create commit-tree"
+      commit-tree "HEAD^{tree}" -m "Initial commit" 2>"$errf"
+  )"; then
+    die_from_cmd "failed to create commit-tree" "$errf"
+  fi
+  rm -f "$errf"
   ensure_target_repo
-  git_gh -C "$source_dir" push "https://github.com/${target}.git" \
-    "${sha}:refs/heads/${SOURCE_DEFAULT_BRANCH}" \
-    || die "failed to push ${SOURCE_DEFAULT_BRANCH} to ${target}"
+  errf="$(mktemp)"
+  if ! git_gh -C "$source_dir" push "https://github.com/${target}.git" \
+    "${sha}:refs/heads/${SOURCE_DEFAULT_BRANCH}" 2>"$errf"; then
+    die_from_cmd "failed to push ${SOURCE_DEFAULT_BRANCH} to ${target}" "$errf"
+  fi
+  rm -f "$errf"
   out "Copied ${SOURCE} to ${target} as a single commit."
 }
 
