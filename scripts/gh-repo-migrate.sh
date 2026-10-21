@@ -25,6 +25,8 @@ out() { [[ "$QUIET" -eq 1 ]] || printf '%s\n' "$*"; }
 err() { printf '\nerror: %s\n' "$*" >&2; }
 die() { err "$1"; exit 1; }
 usage_die() { err "$1 Try --help."; exit 2; }
+# Closing success / dry-run line: one blank before it (respect -q).
+closing() { [[ "$QUIET" -eq 1 ]] || printf '\n%s\n' "$*"; }
 ok() { out "  ok  $1"; }
 warn() { out "  !!  $*"; }
 info() { out "  i   $*"; }
@@ -342,14 +344,14 @@ do_transfer() {
   rm -f "$errf"
 
   if [[ "$owner_type" == User && "$TARGET_OWNER" != "$AUTH_USER" ]]; then
-    out "Transfer requested. ${TARGET_OWNER} must accept it before it completes."
+    closing "Transfer requested. ${TARGET_OWNER} must accept it before it completes."
     return 0
   fi
 
   local poll_max="${GH_REPO_MIGRATE_POLL_MAX:-60}"
   while ((waited < poll_max)); do
     if gh api "repos/${target}" >/dev/null 2>&1; then
-      out "Transferred ${SOURCE} to ${target}."
+      closing "Transferred ${SOURCE} to ${target}."
       return 0
     fi
     sleep 1
@@ -428,7 +430,7 @@ do_mirror() {
   fi
   ensure_target_repo
   mirror_push_refs "$mirror" "$target"
-  out "Mirrored ${SOURCE} to ${target}."
+  closing "Mirrored ${SOURCE} to ${target}."
 }
 
 commit_identity() {
@@ -478,7 +480,7 @@ do_single() {
     die_from_cmd "failed to push ${SOURCE_DEFAULT_BRANCH} to ${target}" "$errf"
   fi
   rm -f "$errf"
-  out "Copied ${SOURCE} to ${target} as a single commit."
+  closing "Copied ${SOURCE} to ${target} as a single commit."
 }
 
 main() {
@@ -496,7 +498,7 @@ main() {
   fi
   print_plan
   if [[ "$DRY_RUN" -eq 1 ]]; then
-    out "Dry run: nothing changed."
+    closing "Dry run: nothing changed."
     exit 0
   fi
   confirm
