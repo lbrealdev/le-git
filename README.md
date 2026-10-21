@@ -30,7 +30,7 @@ just gql next-id <github-login>
 
 ### Scripts
 
-- [Top-level scripts](scripts/README.md) — e.g. migrate a repo to a fresh single-commit `main` (`TARGET_TOKEN`)
+- [Top-level scripts](scripts/README.md) — e.g. `gh-repo-migrate.sh`
 
 ### Git
 

@@ -39,38 +39,3 @@ jobs:
             exit 0
           fi
           shellcheck -x --severity=warning "${files[@]}"
-
-      - name: migrate-repo-fresh smoke (--help / usage)
-        run: |
-          set -euo pipefail
-          git config --global user.name "ci-bot"
-          git config --global user.email "ci-bot@example.com"
-          ./scripts/migrate-repo-fresh.sh --help >/dev/null
-          # Missing args and same source/dest must fail with usage exit 2
-          set +e
-          ./scripts/migrate-repo-fresh.sh >/dev/null 2>&1
-          status=$?
-          set -e
-          test "$status" -eq 2
-          set +e
-          ./scripts/migrate-repo-fresh.sh owner-a/repo owner-a/repo >/dev/null 2>&1
-          status=$?
-          set -e
-          test "$status" -eq 2
-          # No TARGET_TOKEN and no gh on PATH → clear TARGET_TOKEN message
-          bindir="$(mktemp -d)"
-          ln -s "$(command -v git)" "${bindir}/git"
-          set +e
-          env -u TARGET_TOKEN -u SOURCE_TOKEN -u DST_TOKEN -u GH_TOKEN -u GITHUB_TOKEN \
-            PATH="${bindir}" \
-            ./scripts/migrate-repo-fresh.sh owner-a/repo owner-b/repo \
-            >/tmp/migrate-no-auth.out 2>/tmp/migrate-no-auth.err
-          status=$?
-          set -e
-          test "$status" -eq 2
-          grep -q 'TARGET_TOKEN' /tmp/migrate-no-auth.err
-          # Old name must not appear
-          if grep -q 'DST_TOKEN' /tmp/migrate-no-auth.err ./scripts/migrate-repo-fresh.sh; then
-            echo "DST_TOKEN must not remain in script or errors" >&2
-            exit 1
-          fi

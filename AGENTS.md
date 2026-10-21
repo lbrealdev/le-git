@@ -14,9 +14,7 @@ older API POCs.
 
 ## Layout
 
-- `scripts/` — top-level helpers that are not tied to one `git/` or
-  `github/` topic (e.g. fresh-dest repo migration via `TARGET_TOKEN`,
-  optional `SOURCE_TOKEN`)
+- `scripts/` — top-level helpers not tied to one `git/` or `github/` topic
 - `git/` — command notes (`README.md`, `git-tricks.md`) and helpers in
   `git/scripts/`
 - `github/` — GitHub topic notes plus REST/GraphQL/CLI/Actions scripts
