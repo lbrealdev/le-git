@@ -14,11 +14,16 @@ SOURCE=''
 TARGET_OWNER=''
 TARGET_NAME=''
 AUTH_USER=''
+SOURCE_USER=''
+SOURCE_AUTH=''
+TARGET_AUTH=''
 SOURCE_VISIBILITY=''
 SOURCE_DEFAULT_BRANCH=''
 TARGET_EXISTS=0
 TMPDIR_PATH=''
 BRANCHES=()
+HAVE_JQ=0
+HAVE_GH=0
 
 out() { [[ "$QUIET" -eq 1 ]] || printf '%s\n' "$*"; }
 # One blank line before every error: (separates status / prompt); never doubles.
@@ -41,11 +46,11 @@ die_from_cmd() {
   if [[ "$VERBOSE" -eq 1 && -n "$raw" ]]; then
     printf '%s\n' "$raw" >&2
   fi
-  msg="$(printf '%s\n' "$raw" | sed -n -e 's/^gh: //p' -e 's/^fatal: //p' | head -n 1)"
+  msg="$(printf '%s\n' "$raw" | sed -n -e 's/^gh: //p' -e 's/^fatal: //p' -e 's/^curl: //p' | head -n 1)"
   if [[ -z "$msg" ]]; then
     msg="$(printf '%s\n' "$raw" | sed -n 's/.*"message"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' | head -n 1)"
   fi
-  # gh repo create and some APIs print "HTTP NNN: ..." with no gh: prefix
+  # Some APIs print "HTTP NNN: ..." with no prefix
   if [[ -z "$msg" ]]; then
     msg="$(printf '%s\n' "$raw" | sed '/^$/d' | head -n 1)"
   fi
@@ -68,7 +73,7 @@ print_help() {
 Usage: gh-repo-migrate.sh <owner/repo> [<target-owner>[/<name>]] [options]
 
 Move a GitHub repository to another owner (transfer, mirror, or single commit).
-Auth: GH_TOKEN or GITHUB_TOKEN, else gh auth login.
+Auth: SOURCE_TOKEN/TARGET_TOKEN, else GH_TOKEN, else GITHUB_TOKEN, else gh.
 
 Modes:
   (default)           Native transfer (requires admin on the source)
@@ -93,14 +98,137 @@ Examples:
 EOF
 }
 
-# Non-interactive git via gh credentials (no GCM popup, no token in argv).
-git_gh() {
-  GCM_INTERACTIVE=never GIT_TERMINAL_PROMPT=0 \
+# Resolve once: side-specific token, then GH_TOKEN, GITHUB_TOKEN, then gh auth token.
+resolve_side_token() {
+  local side="$1" specific="${2:-}"
+  if [[ -n "$specific" ]]; then
+    printf '%s' "$specific"
+    return 0
+  fi
+  if [[ -n "${GH_TOKEN:-}" ]]; then
+    printf '%s' "$GH_TOKEN"
+    return 0
+  fi
+  if [[ -n "${GITHUB_TOKEN:-}" ]]; then
+    printf '%s' "$GITHUB_TOKEN"
+    return 0
+  fi
+  if [[ "$HAVE_GH" -eq 1 ]]; then
+    local tok
+    if tok="$(gh auth token 2>/dev/null)" && [[ -n "$tok" ]]; then
+      printf '%s' "$tok"
+      return 0
+    fi
+  fi
+  err "no token for ${side}"
+  return 1
+}
+
+# GitHub REST via curl. Auth header only in --config (never argv).
+# Usage: api_request TOKEN METHOD PATH [json_body]  -> body on stdout, 0 on 2xx.
+# On failure: HTTP status + body on stderr (caller redirects to errf).
+api_request() {
+  local token="$1" method="$2" path="$3" body="${4:-}"
+  local out code conf bodyfile='' rc=0 msg
+  out="$(mktemp)"
+  conf="$(mktemp)"
+  {
+    printf 'url = "https://api.github.com/%s"\n' "$path"
+    printf 'request = "%s"\n' "$method"
+    printf 'header = "Authorization: Bearer %s"\n' "$token"
+    printf 'header = "Accept: application/vnd.github+json"\n'
+    printf 'header = "X-GitHub-Api-Version: 2022-11-28"\n'
+    if [[ -n "$body" ]]; then
+      bodyfile="$(mktemp)"
+      printf '%s' "$body" >"$bodyfile"
+      printf 'header = "Content-Type: application/json"\n'
+      printf 'data-binary = "@%s"\n' "$bodyfile"
+    fi
+  } >"$conf"
+  code="$(curl -sS -o "$out" -w '%{http_code}' --config "$conf")" || rc=$?
+  rm -f "$conf"
+  [[ -n "$bodyfile" ]] && rm -f "$bodyfile"
+  if [[ "$rc" -ne 0 ]]; then
+    printf 'curl: request failed\n' >&2
+    cat "$out" >&2 2>/dev/null || true
+    rm -f "$out"
+    return 1
+  fi
+  if [[ ! "$code" =~ ^2 ]]; then
+    msg="$(sed -n 's/.*"message"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' "$out" | head -n 1)"
+    printf 'HTTP %s: %s\n' "$code" "${msg:-}" >&2
+    cat "$out" >&2
+    rm -f "$out"
+    return 1
+  fi
+  cat "$out"
+  rm -f "$out"
+  return 0
+}
+
+# Minimal JSON field helpers (jq when available; else sed for needed keys).
+json_str() {
+  local json="$1" key="$2"
+  if [[ "$HAVE_JQ" -eq 1 ]]; then
+    printf '%s' "$json" | jq -r --arg k "$key" 'if .[$k] == null then empty else .[$k]|tostring end'
+    return 0
+  fi
+  printf '%s' "$json" | tr '\n' ' ' | sed -n "s/.*\"${key}\"[[:space:]]*:[[:space:]]*\"\\([^\"]*\\)\".*/\\1/p" | head -n 1
+}
+
+json_bool() {
+  local json="$1" key="$2" v
+  if [[ "$HAVE_JQ" -eq 1 ]]; then
+    v="$(printf '%s' "$json" | jq -r --arg k "$key" '.[$k] | if . == null then empty else tostring end')"
+    printf '%s' "$v"
+    return 0
+  fi
+  printf '%s' "$json" | tr '\n' ' ' | sed -n "s/.*\"${key}\"[[:space:]]*:[[:space:]]*\\(true\\|false\\).*/\\1/p" | head -n 1
+}
+
+json_num() {
+  local json="$1" key="$2"
+  if [[ "$HAVE_JQ" -eq 1 ]]; then
+    printf '%s' "$json" | jq -r --arg k "$key" 'if .[$k] == null then empty else .[$k]|tostring end'
+    return 0
+  fi
+  printf '%s' "$json" | tr '\n' ' ' | sed -n "s/.*\"${key}\"[[:space:]]*:[[:space:]]*\\([0-9][0-9]*\\).*/\\1/p" | head -n 1
+}
+
+json_permissions_admin() {
+  local json="$1"
+  if [[ "$HAVE_JQ" -eq 1 ]]; then
+    printf '%s' "$json" | jq -r '.permissions.admin // false'
+    return 0
+  fi
+  printf '%s' "$json" | tr '\n' ' ' \
+    | sed -n 's/.*"permissions"[[:space:]]*:[[:space:]]*{[^}]*"admin"[[:space:]]*:[[:space:]]*\(true\|false\).*/\1/p' \
+    | head -n 1
+}
+
+api_login() {
+  local token="$1" json login
+  json="$(api_request "$token" GET user 2>/dev/null)" || return 1
+  login="$(json_str "$json" login)"
+  [[ -n "$login" && "$login" != null ]] || return 1
+  printf '%s' "$login"
+}
+
+# Non-interactive git: reset inherited helpers; token via GIT_AUTH_TOKEN env only.
+# shellcheck disable=SC2016
+git_auth() {
+  GCM_INTERACTIVE=never GCM_GUI_PROMPT=false GIT_TERMINAL_PROMPT=0 \
+    GIT_ASKPASS=/bin/false SSH_ASKPASS=/bin/false GH_PROMPT_DISABLED=1 \
     git -c credential.helper= \
     -c credential.https://github.com.helper= \
     -c credential.interactive=false \
-    -c 'credential.helper=!gh auth git-credential' "$@"
+    -c core.askPass=/bin/false \
+    -c 'credential.helper=!f(){ echo username=x-access-token; echo "password=${GIT_AUTH_TOKEN}"; }; f' \
+    "$@"
 }
+
+git_source() { GIT_AUTH_TOKEN="$SOURCE_AUTH" git_auth "$@"; }
+git_target() { GIT_AUTH_TOKEN="$TARGET_AUTH" git_auth "$@"; }
 
 require_owner_repo() {
   [[ "$1" =~ ^[^/]+/[^/]+$ ]] || usage_die "'$1' must be owner/repo."
@@ -157,22 +285,37 @@ parse_args() {
   fi
 }
 
+ensure_tools() {
+  command -v git >/dev/null 2>&1 || die "git is not installed"
+  command -v curl >/dev/null 2>&1 || die "curl is not installed"
+  HAVE_GH=0
+  HAVE_JQ=0
+  command -v gh >/dev/null 2>&1 && HAVE_GH=1
+  command -v jq >/dev/null 2>&1 && HAVE_JQ=1
+  if [[ "$VERBOSE" -eq 1 ]]; then
+    if [[ "$HAVE_GH" -eq 1 ]]; then
+      info "optional: gh (credential source)"
+    else
+      info "optional: gh not found"
+    fi
+    if [[ "$HAVE_JQ" -eq 1 ]]; then
+      info "optional: jq (JSON)"
+    else
+      info "optional: jq not found (sed fallback)"
+    fi
+  fi
+}
+
 ensure_tools_and_auth() {
-  command -v gh >/dev/null 2>&1 || die "gh not found (https://cli.github.com)"
-  command -v git >/dev/null 2>&1 || die "git not found"
-  if [[ -z "${GH_TOKEN:-}" && -n "${GITHUB_TOKEN:-}" ]]; then
-    export GH_TOKEN="$GITHUB_TOKEN"
-  fi
-  if [[ -z "${GH_TOKEN:-}" ]]; then
-    gh auth status >/dev/null 2>&1 || die "no token and gh is not logged in"
-  fi
-  AUTH_USER=''
-  if ! AUTH_USER="$(gh api user --jq .login 2>/dev/null)"; then
-    AUTH_USER="$(gh api graphql -f query='{viewer{login}}' --jq .data.viewer.login 2>/dev/null)" \
-      || AUTH_USER=''
-  fi
-  [[ -n "$AUTH_USER" ]] || die "gh authentication failed"
+  ensure_tools
+
+  SOURCE_AUTH="$(resolve_side_token SOURCE "${SOURCE_TOKEN:-}")" || exit 1
+  TARGET_AUTH="$(resolve_side_token TARGET "${TARGET_TOKEN:-}")" || exit 1
+
+  SOURCE_USER="$(api_login "$SOURCE_AUTH" 2>/dev/null || true)"
+  AUTH_USER="$(api_login "$TARGET_AUTH" 2>/dev/null || true)"
   if [[ -z "$TARGET_OWNER" ]]; then
+    [[ -n "$AUTH_USER" ]] || die "cannot resolve TARGET user (set <target-owner>)"
     TARGET_OWNER="$AUTH_USER"
   fi
 }
@@ -204,12 +347,13 @@ confirm() {
 source_meta() {
   local private admin errf meta
   errf="$(mktemp)"
-  if ! meta="$(gh api "repos/${SOURCE}" \
-    --jq '[.private, .default_branch, (.permissions.admin // false)] | @tsv' 2>"$errf")"; then
+  if ! meta="$(api_request "$SOURCE_AUTH" GET "repos/${SOURCE}" 2>"$errf")"; then
     die_from_cmd "cannot read source ${SOURCE}" "$errf"
   fi
   rm -f "$errf"
-  IFS=$'\t' read -r private SOURCE_DEFAULT_BRANCH admin <<<"$meta"
+  private="$(json_bool "$meta" private)"
+  SOURCE_DEFAULT_BRANCH="$(json_str "$meta" default_branch)"
+  admin="$(json_permissions_admin "$meta")"
   [[ -n "$SOURCE_DEFAULT_BRANCH" ]] || die "cannot read default branch of ${SOURCE}"
   if [[ "$private" == true ]]; then SOURCE_VISIBILITY=private; else SOURCE_VISIBILITY=public; fi
   TARGET_VISIBILITY="${TARGET_VISIBILITY:-$SOURCE_VISIBILITY}"
@@ -222,13 +366,13 @@ source_meta() {
 
 # TARGET_EXISTS=0 free, 1 empty (resume). Dies on non-empty or auth errors.
 check_target() {
-  local target size refs errf
+  local target size refs errf body
   target="$(target_slug)"
   errf="$(mktemp)"
-  if gh api "repos/${target}" >/dev/null 2>"$errf"; then
+  if body="$(api_request "$TARGET_AUTH" GET "repos/${target}" 2>"$errf")"; then
     rm -f "$errf"
-    size="$(gh api "repos/${target}" --jq .size 2>/dev/null || true)"
-    refs="$(git_gh ls-remote "https://github.com/${target}.git" 2>/dev/null || true)"
+    size="$(json_num "$body" size)"
+    refs="$(git_target ls-remote "https://github.com/${target}.git" 2>/dev/null || true)"
     if [[ "${size:-1}" == 0 && -z "$refs" ]]; then
       TARGET_EXISTS=1
       ok "target ${target} exists and is empty (will resume)"
@@ -259,14 +403,13 @@ header() {
 }
 
 plan_create_or_reuse() {
-  local target i="$1" vis_flag
+  local target i="$1"
   target="$(target_slug)"
-  [[ "$TARGET_VISIBILITY" == public ]] && vis_flag=--public || vis_flag=--private
   if [[ "$TARGET_EXISTS" -eq 1 ]]; then
     out "  ${i}. Reuse empty ${target}"
   else
     out "  ${i}. Create ${target} (${TARGET_VISIBILITY})"
-    step_cmd "gh repo create ${target} ${vis_flag}"
+    step_cmd "create ${target} (${TARGET_VISIBILITY})"
   fi
 }
 
@@ -308,33 +451,52 @@ print_plan() {
 }
 
 ensure_target_repo() {
-  local target vis_flag errf
+  local target errf owner_type body private_json path
   target="$(target_slug)"
   if [[ "$TARGET_EXISTS" -eq 1 ]]; then
     out "Resuming into empty ${target}."
     return 0
   fi
-  [[ "$TARGET_VISIBILITY" == public ]] && vis_flag=--public || vis_flag=--private
   errf="$(mktemp)"
-  if ! gh repo create "$target" "$vis_flag" >/dev/null 2>"$errf"; then
+  if ! body="$(api_request "$TARGET_AUTH" GET "users/${TARGET_OWNER}" 2>"$errf")"; then
+    die_from_cmd "cannot resolve owner type for ${TARGET_OWNER}" "$errf"
+  fi
+  rm -f "$errf"
+  owner_type="$(json_str "$body" type)"
+  [[ "$TARGET_VISIBILITY" == private ]] && private_json=true || private_json=false
+  body="$(printf '{"name":"%s","private":%s}' "$TARGET_NAME" "$private_json")"
+  if [[ "$owner_type" == Organization ]]; then
+    path="orgs/${TARGET_OWNER}/repos"
+  else
+    if [[ -n "$AUTH_USER" && "$TARGET_OWNER" != "$AUTH_USER" ]]; then
+      die "cannot create ${target}: TARGET user is ${AUTH_USER}, not ${TARGET_OWNER}"
+    fi
+    path="user/repos"
+  fi
+  errf="$(mktemp)"
+  if ! api_request "$TARGET_AUTH" POST "$path" "$body" >/dev/null 2>"$errf"; then
     die_from_cmd "failed to create ${target}" "$errf"
   fi
   rm -f "$errf"
 }
 
 do_transfer() {
-  local target args=() errf owner_type waited=0
+  local target errf owner_type waited=0 body
   target="$(target_slug)"
   errf="$(mktemp)"
-  if ! owner_type="$(gh api "users/${TARGET_OWNER}" --jq .type 2>"$errf")"; then
+  if ! body="$(api_request "$SOURCE_AUTH" GET "users/${TARGET_OWNER}" 2>"$errf")"; then
     die_from_cmd "cannot resolve owner type for ${TARGET_OWNER}" "$errf"
   fi
   rm -f "$errf"
+  owner_type="$(json_str "$body" type)"
 
-  args=(-X POST "repos/${SOURCE}/transfer" -f "new_owner=${TARGET_OWNER}")
-  [[ "$TARGET_NAME" != "${SOURCE#*/}" ]] && args+=(-f "new_name=${TARGET_NAME}")
+  if [[ "$TARGET_NAME" != "${SOURCE#*/}" ]]; then
+    body="$(printf '{"new_owner":"%s","new_name":"%s"}' "$TARGET_OWNER" "$TARGET_NAME")"
+  else
+    body="$(printf '{"new_owner":"%s"}' "$TARGET_OWNER")"
+  fi
   errf="$(mktemp)"
-  if ! gh api "${args[@]}" >/dev/null 2>"$errf"; then
+  if ! api_request "$SOURCE_AUTH" POST "repos/${SOURCE}/transfer" "$body" >/dev/null 2>"$errf"; then
     if grep -qiE '422|Validation Failed' "$errf"; then
       die_from_cmd "transfer failed" "$errf" \
         "Name clash or ${TARGET_OWNER} cannot receive it. Try --mirror or --single-commit."
@@ -347,14 +509,14 @@ do_transfer() {
   fi
   rm -f "$errf"
 
-  if [[ "$owner_type" == User && "$TARGET_OWNER" != "$AUTH_USER" ]]; then
+  if [[ "$owner_type" == User && -n "$SOURCE_USER" && "$TARGET_OWNER" != "$SOURCE_USER" ]]; then
     closing "Transfer requested. ${TARGET_OWNER} must accept it before it completes."
     return 0
   fi
 
   local poll_max="${GH_REPO_MIGRATE_POLL_MAX:-60}"
   while ((waited < poll_max)); do
-    if gh api "repos/${target}" >/dev/null 2>&1; then
+    if api_request "$TARGET_AUTH" GET "repos/${target}" >/dev/null 2>&1; then
       closing "Transferred ${SOURCE} to ${target}."
       return 0
     fi
@@ -395,7 +557,7 @@ mirror_push_refs() {
     total="$(git -C "$mirror" for-each-ref --format='%(refname)' refs/heads refs/tags | wc -l | tr -d ' ')"
     out "  Pushing to ${target} ..."
     errf="$(mktemp)"
-    if ! git_gh -C "$mirror" push --mirror "https://github.com/${target}.git" 2>"$errf"; then
+    if ! git_target -C "$mirror" push --mirror "https://github.com/${target}.git" 2>"$errf"; then
       die_from_cmd "failed to mirror-push to ${target}" "$errf"
     fi
     rm -f "$errf"
@@ -405,7 +567,7 @@ mirror_push_refs() {
   total=${#refspecs[@]}
   out "  Pushing to ${target} ..."
   errf="$(mktemp)"
-  if ! git_gh -C "$mirror" push "https://github.com/${target}.git" "${refspecs[@]}" 2>"$errf"; then
+  if ! git_target -C "$mirror" push "https://github.com/${target}.git" "${refspecs[@]}" 2>"$errf"; then
     die_from_cmd "failed to push selected refs to ${target}" "$errf"
   fi
   rm -f "$errf"
@@ -420,7 +582,7 @@ do_mirror() {
   mirror="${TMPDIR_PATH}/mirror.git"
   out "  Cloning ${SOURCE} ..."
   errf="$(mktemp)"
-  if ! git_gh clone --mirror "https://github.com/${SOURCE}.git" "$mirror" 2>"$errf"; then
+  if ! git_source clone --mirror "https://github.com/${SOURCE}.git" "$mirror" 2>"$errf"; then
     die_from_cmd "failed to mirror-clone ${SOURCE}" "$errf"
   fi
   rm -f "$errf"
@@ -457,7 +619,7 @@ do_single() {
   source_dir="${TMPDIR_PATH}/source"
   out "  Cloning ${SOURCE} ..."
   errf="$(mktemp)"
-  if ! git_gh clone --depth 1 --branch "$SOURCE_DEFAULT_BRANCH" \
+  if ! git_source clone --depth 1 --branch "$SOURCE_DEFAULT_BRANCH" \
     "https://github.com/${SOURCE}.git" "$source_dir" 2>"$errf"; then
     die_from_cmd "failed to clone ${SOURCE}" "$errf"
   fi
@@ -484,7 +646,7 @@ do_single() {
   ensure_target_repo
   out "  Pushing to ${target} ..."
   errf="$(mktemp)"
-  if ! git_gh -C "$source_dir" push "https://github.com/${target}.git" \
+  if ! git_target -C "$source_dir" push "https://github.com/${target}.git" \
     "${sha}:refs/heads/${SOURCE_DEFAULT_BRANCH}" 2>"$errf"; then
     die_from_cmd "failed to push ${SOURCE_DEFAULT_BRANCH} to ${target}" "$errf"
   fi
@@ -496,7 +658,7 @@ main() {
   parse_args "$@"
   ensure_tools_and_auth
   header
-  ok "gh authenticated"
+  ok "authenticated"
   source_meta
   if [[ "$(target_slug)" == "$SOURCE" ]]; then
     usage_die "source and target must differ."

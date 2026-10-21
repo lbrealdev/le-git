@@ -12,4 +12,5 @@ Top-level helpers not tied to one `git/` or `github/` topic.
 ./scripts/gh-repo-migrate.sh acme/widget --single-commit --public -y
 ```
 
-Auth: `GH_TOKEN`, else `GITHUB_TOKEN`, else logged-in `gh`. See `--help`.
+Auth: `SOURCE_TOKEN` / `TARGET_TOKEN`, else `GH_TOKEN`, else `GITHUB_TOKEN`, else
+logged-in `gh`. See `--help`.
