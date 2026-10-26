@@ -39,3 +39,27 @@ jobs:
             exit 0
           fi
           shellcheck -x --severity=warning "${files[@]}"
+
+      - name: gh-repo-migrate single-commit (offline)
+        run: ./scripts/gh-repo-migrate-single-commit-test.sh
+
+      - name: gh-repo-migrate owner guard (offline)
+        run: ./scripts/gh-repo-migrate-owner-guard-test.sh
+
+      - name: gh-repo-migrate check-target (offline)
+        run: ./scripts/gh-repo-migrate-check-target-test.sh
+
+      - name: gh-repo-migrate cleanup (offline)
+        run: ./scripts/gh-repo-migrate-cleanup-test.sh
+
+      - name: gh-repo-migrate identity (offline)
+        run: ./scripts/gh-repo-migrate-identity-test.sh
+
+      - name: gh-repo-migrate auth (offline)
+        run: ./scripts/gh-repo-migrate-auth-test.sh
+
+      - name: gh-repo-migrate redirect (offline)
+        run: ./scripts/gh-repo-migrate-redirect-test.sh
+
+      - name: gh-repo-migrate plural (offline)
+        run: ./scripts/gh-repo-migrate-plural-test.sh
