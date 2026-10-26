@@ -24,6 +24,8 @@ SOURCE_DEFAULT_BRANCH=''
 TARGET_EXISTS=0
 TMPDIR_PATH=''
 HOST_IDENTITY=0
+COMMIT_NAME=''
+COMMIT_EMAIL=''
 BRANCHES=()
 HAVE_JQ=0
 HAVE_GH=0
@@ -558,13 +560,8 @@ print_plan() {
       out "Note: issues, PRs, releases, wiki, settings, and LFS objects do not move."
       ;;
     single-commit)
-      local name email
-      {
-        read -r name
-        read -r email
-      } < <(commit_identity)
       out "  ${i}. Copy the default branch of ${SOURCE}"; i=$((i + 1))
-      out "  ${i}. Rebuild ${SOURCE_DEFAULT_BRANCH} as one commit (${name} <${email}>)"; i=$((i + 1))
+      out "  ${i}. Rebuild ${SOURCE_DEFAULT_BRANCH} as one commit (${COMMIT_NAME} <${COMMIT_EMAIL}>)"; i=$((i + 1))
       plan_create_or_reuse "$i"; i=$((i + 1))
       out "  ${i}. Push ${SOURCE_DEFAULT_BRANCH}"
       out "Note: history, issues, PRs, releases, wiki, and settings do not move."
@@ -733,22 +730,21 @@ do_mirror() {
   closing "Mirrored ${SOURCE} to ${target}."
 }
 
-commit_identity() {
-  local name email
+resolve_commit_identity() {
+  [[ "$MODE" == single-commit ]] || return 0
   if [[ "$HOST_IDENTITY" -eq 1 ]]; then
-    name="$(git config --get user.name 2>/dev/null || true)"
-    email="$(git config --get user.email 2>/dev/null || true)"
-    [[ -n "$name" && -n "$email" ]] \
+    COMMIT_NAME="$(git config --get user.name 2>/dev/null || true)"
+    COMMIT_EMAIL="$(git config --get user.email 2>/dev/null || true)"
+    [[ -n "$COMMIT_NAME" && -n "$COMMIT_EMAIL" ]] \
       || die "git user.name and user.email are required with --host-identity."
   else
-    name=gh-repo-migrate
-    email=gh-repo-migrate@users.noreply.github.com
+    COMMIT_NAME=gh-repo-migrate
+    COMMIT_EMAIL=gh-repo-migrate@users.noreply.github.com
   fi
-  printf '%s\n%s\n' "$name" "$email"
 }
 
 do_single() {
-  local target source_dir sha name email attrs errf when
+  local target source_dir sha attrs errf when
   target="$(target_slug)"
   TMPDIR_PATH="$(mktemp -d)"
   trap cleanup EXIT
@@ -767,15 +763,11 @@ do_single() {
   if [[ "$attrs" == *filter=lfs* ]]; then
     warn ".gitattributes uses filter=lfs; LFS objects are not copied"
   fi
-  {
-    read -r name
-    read -r email
-  } < <(commit_identity)
   when="$(date -u +"%Y-%m-%d %H:%M:%S +0000")"
   errf="$(mktemp)"
   if ! sha="$(
-    GIT_AUTHOR_NAME="$name" GIT_AUTHOR_EMAIL="$email" \
-      GIT_COMMITTER_NAME="$name" GIT_COMMITTER_EMAIL="$email" \
+    GIT_AUTHOR_NAME="$COMMIT_NAME" GIT_AUTHOR_EMAIL="$COMMIT_EMAIL" \
+      GIT_COMMITTER_NAME="$COMMIT_NAME" GIT_COMMITTER_EMAIL="$COMMIT_EMAIL" \
       GIT_AUTHOR_DATE="$when" GIT_COMMITTER_DATE="$when" \
       git -C "$source_dir" commit-tree "HEAD^{tree}" -m "Initial commit" 2>"$errf"
   )"; then
@@ -796,6 +788,7 @@ do_single() {
 main() {
   parse_args "$@"
   ensure_tools_and_auth
+  resolve_commit_identity
   header
 
   source_meta

@@ -252,6 +252,36 @@ main() {
   set -e
   [[ "$rc" -eq 2 ]] || die "--host-identity without --single-commit exited ${rc}"
 
+  {
+    printf '[init]\n'
+    printf '\tdefaultBranch = main\n'
+  } >"${testdir}/gitconfig.noid"
+  set +e
+  env \
+    -u GH_TOKEN \
+    -u GITHUB_TOKEN \
+    TZ="$TEST_TZ" \
+    PATH="${testdir}/bin:${PATH}" \
+    TMPDIR="${testdir}/watch-tmp" \
+    SOURCE_TOKEN=test-source-token \
+    TARGET_TOKEN=test-target-token \
+    GIT_CONFIG_NOSYSTEM=1 \
+    GIT_CONFIG_GLOBAL="${testdir}/gitconfig.noid" \
+    HOME="${testdir}/home" \
+    "$SCRIPT" acme/widget new-co --single-commit --host-identity -n \
+    >"$stdoutf" 2>"$stderrf"
+  rc=$?
+  set -e
+  [[ "$rc" -eq 1 ]] || die "missing host identity exited ${rc}, expected 1"
+  grep -Fq 'git user.name and user.email are required with --host-identity.' "$stderrf" \
+    || die "missing --host-identity identity error"
+  if grep -Fq 'Rebuild main as one commit ( <>)' "$stdoutf"; then
+    die "plan printed an empty host identity"
+  fi
+  if grep -Fq $'Plan:' "$stdoutf"; then
+    die "Plan was printed before --host-identity failed"
+  fi
+
   printf '%s\n' "ok: single-commit identity is neutral unless --host-identity"
 }
 
