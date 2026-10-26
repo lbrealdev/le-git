@@ -280,6 +280,21 @@ json_permissions_admin() {
     | head -n 1
 }
 
+# GET repos/<slug>. Prints the body and returns 0 only when full_name is that slug
+# (case-insensitive). A 2xx redirect prints the other full_name and returns 2.
+repo_at() {
+  local token="$1" slug="$2" body full
+  body="$(api_request "$token" GET "repos/${slug}")" || return 1
+  full="$(json_str "$body" full_name)"
+  if [[ -n "$full" && "${full,,}" != "${slug,,}" ]]; then
+    printf '%s' "$full"
+    return 2
+  fi
+  [[ -n "$full" ]] || return 1
+  printf '%s' "$body"
+  return 0
+}
+
 # JSON string (quoted). jq when available; else escape \ " and controls.
 json_str_encode() {
   local s="$1"
@@ -454,10 +469,11 @@ source_meta() {
 
 # TARGET_EXISTS=0 free, 1 empty (resume). Dies on non-empty or auth errors.
 check_target() {
-  local target size refs errf body
+  local target size refs errf body rc=0
   target="$(target_slug)"
   errf="$(mktemp)"
-  if body="$(api_request "$TARGET_AUTH" GET "repos/${target}" 2>"$errf")"; then
+  body="$(repo_at "$TARGET_AUTH" "$target" 2>"$errf")" && rc=0 || rc=$?
+  if [[ "$rc" -eq 0 ]]; then
     rm -f "$errf"
     size="$(json_num "$body" size)"
     refs="$(git_target ls-remote "https://github.com/${target}.git" 2>/dev/null || true)"
@@ -467,6 +483,12 @@ check_target() {
       return 0
     fi
     die "${target} already exists and is not empty."
+  fi
+  if [[ "$rc" -eq 2 ]]; then
+    rm -f "$errf"
+    TARGET_EXISTS=0
+    ok "target ${target} is free (old name, redirects to ${body})"
+    return 0
   fi
   if grep -qE 'HTTP 404' "$errf"; then
     rm -f "$errf"
@@ -622,7 +644,7 @@ do_transfer() {
 
   local poll_max="${GH_REPO_MIGRATE_POLL_MAX:-60}"
   while ((waited < poll_max)); do
-    if api_request "$TARGET_AUTH" GET "repos/${target}" >/dev/null 2>&1; then
+    if repo_at "$TARGET_AUTH" "$target" >/dev/null 2>&1; then
       closing "Transferred ${SOURCE} to ${target}."
       return 0
     fi
