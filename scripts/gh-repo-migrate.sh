@@ -494,11 +494,10 @@ ensure_target_repo() {
   body="$(printf '{"name":"%s","private":%s}' "$TARGET_NAME" "$private_json")"
   if [[ "$owner_type" == Organization ]]; then
     path="orgs/${TARGET_OWNER}/repos"
-  else
-    if [[ -n "$AUTH_USER" && "$TARGET_OWNER" != "$AUTH_USER" ]]; then
-      die "Cannot create ${target}. TARGET is ${AUTH_USER}, not ${TARGET_OWNER}."
-    fi
+  elif [[ "$owner_type" == User && -n "$AUTH_USER" && "$TARGET_OWNER" == "$AUTH_USER" ]]; then
     path="user/repos"
+  else
+    die "cannot create ${target} because the TARGET credentials could not be confirmed for ${TARGET_OWNER}."
   fi
   errf="$(mktemp)"
   if ! api_request "$TARGET_AUTH" POST "$path" "$body" >/dev/null 2>"$errf"; then
@@ -540,7 +539,8 @@ do_transfer() {
   fi
   rm -f "$errf"
 
-  if [[ "$owner_type" == User && -n "$SOURCE_USER" && "$TARGET_OWNER" != "$SOURCE_USER" ]]; then
+  # Personal target: unknown SOURCE login is treated like a different user.
+  if [[ "$owner_type" == User && ( -z "$SOURCE_USER" || "$TARGET_OWNER" != "$SOURCE_USER" ) ]]; then
     closing "Transfer requested. ${TARGET_OWNER} must accept it before it completes."
     return 0
   fi
