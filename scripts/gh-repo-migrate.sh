@@ -20,6 +20,7 @@ SOURCE_VISIBILITY=''
 SOURCE_DEFAULT_BRANCH=''
 TARGET_EXISTS=0
 TMPDIR_PATH=''
+HOST_IDENTITY=0
 BRANCHES=()
 HAVE_JQ=0
 HAVE_GH=0
@@ -88,6 +89,7 @@ Options:
   --no-tags           With --mirror: do not push tags
   --public            Target visibility (mirror / single-commit)
   --private           Target visibility (mirror / single-commit)
+  --host-identity     With --single-commit: use this host's git identity
   -n, --dry-run       Show plan; change nothing
   -y, --yes           Skip confirmation prompt
   -q, --quiet         Hide non-error stdout
@@ -291,6 +293,7 @@ parse_args() {
       --no-tags) NO_TAGS=1; shift ;;
       --public) TARGET_VISIBILITY=public; shift ;;
       --private) TARGET_VISIBILITY=private; shift ;;
+      --host-identity) HOST_IDENTITY=1; shift ;;
       -*) usage_die "Unknown option $1." ;;
       *) positional+=("$1"); shift ;;
     esac
@@ -319,6 +322,9 @@ parse_args() {
   fi
   if [[ -n "$TARGET_VISIBILITY" && "$MODE" == transfer ]]; then
     usage_die "--public/--private apply only to --mirror or --single-commit."
+  fi
+  if [[ "$HOST_IDENTITY" -eq 1 && "$MODE" != single-commit ]]; then
+    usage_die "--host-identity requires --single-commit."
   fi
 }
 
@@ -474,8 +480,13 @@ print_plan() {
       out "Note: issues, PRs, releases, wiki, settings, and LFS objects do not move."
       ;;
     single-commit)
+      local name email
+      {
+        read -r name
+        read -r email
+      } < <(commit_identity)
       out "  ${i}. Copy the default branch of ${SOURCE}"; i=$((i + 1))
-      out "  ${i}. Rebuild ${SOURCE_DEFAULT_BRANCH} as one commit"; i=$((i + 1))
+      out "  ${i}. Rebuild ${SOURCE_DEFAULT_BRANCH} as one commit (${name} <${email}>)"; i=$((i + 1))
       plan_create_or_reuse "$i"; i=$((i + 1))
       out "  ${i}. Push ${SOURCE_DEFAULT_BRANCH}"
       out "Note: history, issues, PRs, releases, wiki, and settings do not move."
@@ -646,15 +657,20 @@ do_mirror() {
 
 commit_identity() {
   local name email
-  name="$(git config --get user.name 2>/dev/null || true)"
-  email="$(git config --get user.email 2>/dev/null || true)"
-  [[ -n "$name" ]] || name=gh-repo-migrate
-  [[ -n "$email" ]] || email=gh-repo-migrate@localhost
+  if [[ "$HOST_IDENTITY" -eq 1 ]]; then
+    name="$(git config --get user.name 2>/dev/null || true)"
+    email="$(git config --get user.email 2>/dev/null || true)"
+    [[ -n "$name" && -n "$email" ]] \
+      || die "git user.name and user.email are required with --host-identity."
+  else
+    name=gh-repo-migrate
+    email=gh-repo-migrate@users.noreply.github.com
+  fi
   printf '%s\n%s\n' "$name" "$email"
 }
 
 do_single() {
-  local target source_dir sha name email attrs errf
+  local target source_dir sha name email attrs errf when
   target="$(target_slug)"
   TMPDIR_PATH="$(mktemp -d)"
   trap cleanup EXIT
@@ -677,10 +693,13 @@ do_single() {
     read -r name
     read -r email
   } < <(commit_identity)
+  when="$(date -u +"%Y-%m-%d %H:%M:%S +0000")"
   errf="$(mktemp)"
   if ! sha="$(
-    git -C "$source_dir" -c user.name="$name" -c user.email="$email" \
-      commit-tree "HEAD^{tree}" -m "Initial commit" 2>"$errf"
+    GIT_AUTHOR_NAME="$name" GIT_AUTHOR_EMAIL="$email" \
+      GIT_COMMITTER_NAME="$name" GIT_COMMITTER_EMAIL="$email" \
+      GIT_AUTHOR_DATE="$when" GIT_COMMITTER_DATE="$when" \
+      git -C "$source_dir" commit-tree "HEAD^{tree}" -m "Initial commit" 2>"$errf"
   )"; then
     die_from_cmd "Could not create the single commit" "$errf"
   fi

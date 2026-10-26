@@ -51,3 +51,6 @@ jobs:
 
       - name: gh-repo-migrate cleanup (offline)
         run: ./scripts/gh-repo-migrate-cleanup-test.sh
+
+      - name: gh-repo-migrate identity (offline)
+        run: ./scripts/gh-repo-migrate-identity-test.sh
