@@ -60,3 +60,6 @@ jobs:
 
       - name: gh-repo-migrate redirect (offline)
         run: ./scripts/gh-repo-migrate-redirect-test.sh
+
+      - name: gh-repo-migrate plural (offline)
+        run: ./scripts/gh-repo-migrate-plural-test.sh

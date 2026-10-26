@@ -40,6 +40,14 @@ closing() { [[ "$QUIET" -eq 1 ]] || printf '\n%s\n' "$*"; }
 ok() { out "  ok  $1"; }
 warn() { out "  !!  $*"; }
 info() { out "  i   $*"; }
+plural() {
+  local n="$1" one="$2" many="${3:-${2}s}"
+  if [[ "$n" == 1 ]]; then
+    printf '%s %s' "$n" "$one"
+  else
+    printf '%s %s' "$n" "$many"
+  fi
+}
 target_slug() { printf '%s/%s' "$TARGET_OWNER" "$TARGET_NAME"; }
 
 # Fold captured child stderr into one error: line.
@@ -689,7 +697,7 @@ mirror_push_refs() {
       die_from_cmd "Push to ${target} failed" "$errf"
     fi
     rm -f "$errf"
-    out "  pushed: ${total}/${total} refs"
+    out "  pushed: ${total}/$(plural "$total" ref)"
     return 0
   fi
   total=${#refspecs[@]}
@@ -699,7 +707,7 @@ mirror_push_refs() {
     die_from_cmd "Push to ${target} failed" "$errf"
   fi
   rm -f "$errf"
-  out "  pushed: ${total}/${total} refs"
+  out "  pushed: ${total}/$(plural "$total" ref)"
 }
 
 do_mirror() {
@@ -721,7 +729,7 @@ do_mirror() {
   fi
   branches_n="$(git -C "$mirror" for-each-ref --format='%(refname)' refs/heads | wc -l | tr -d ' ')"
   tags_n="$(git -C "$mirror" for-each-ref --format='%(refname)' refs/tags | wc -l | tr -d ' ')"
-  out "  source: ${branches_n} branches, ${tags_n} tags"
+  out "  source: $(plural "$branches_n" branch branches), $(plural "$tags_n" tag)"
   if ((${#BRANCHES[@]} > 0)) && [[ "$NO_TAGS" -eq 0 ]]; then
     info "--branch still pushes all tags unless --no-tags"
   fi
