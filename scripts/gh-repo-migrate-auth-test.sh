@@ -186,6 +186,21 @@ main() {
   grep -Fq 'target  (not used: transfer runs as source)' "$stdoutf" \
     || die "transfer Auth missing unused TARGET line"
 
+  # only TARGET_TOKEN + transfer -> exit 2, transfer-specific wording
+  set +e
+  run_cmd "$stdoutf" "$stderrf" \
+    env -u GH_TOKEN -u GITHUB_TOKEN -u SOURCE_TOKEN \
+    TARGET_TOKEN=test-target-token \
+    "$SCRIPT" acme/widget new-co -n
+  rc=$?
+  set -e
+  [[ "$rc" -eq 2 ]] || die "TARGET_TOKEN-only transfer exited ${rc}, expected 2"
+  grep -Fq 'SOURCE_TOKEN is not set; transfer runs as the source. Set it, or unset TARGET_TOKEN to use one shared token.' "$stderrf" \
+    || die "missing transfer-specific SOURCE_TOKEN error"
+  if grep -Fq 'per-side mode needs both' "$stderrf"; then
+    die "transfer used the generic per-side missing-token wording"
+  fi
+
   # bad token -> exit 1
   export GH_REPO_MIGRATE_TEST_BAD_TOKEN=1
   set +e

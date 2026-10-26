@@ -131,7 +131,10 @@ resolve_auth() {
     [[ -z "${GH_TOKEN:-}" ]] || warn "GH_TOKEN ignored"
     [[ -z "${GITHUB_TOKEN:-}" ]] || warn "GITHUB_TOKEN ignored"
     if [[ "$MODE" == transfer ]]; then
-      [[ -n "${SOURCE_TOKEN:-}" ]] || need_side_token SOURCE_TOKEN TARGET_TOKEN
+      if [[ -z "${SOURCE_TOKEN:-}" ]]; then
+        err "SOURCE_TOKEN is not set; transfer runs as the source. Set it, or unset TARGET_TOKEN to use one shared token."
+        exit 2
+      fi
       SOURCE_AUTH="$SOURCE_TOKEN"
       SOURCE_AUTH_FROM=SOURCE_TOKEN
       TARGET_AUTH="$SOURCE_TOKEN"
