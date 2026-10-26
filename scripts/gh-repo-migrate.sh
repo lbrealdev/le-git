@@ -7,13 +7,12 @@ MODE=transfer
 DRY_RUN=0
 YES=0
 QUIET=0
-VERBOSE=0
 TARGET_VISIBILITY=''
 NO_TAGS=0
 SOURCE=''
 TARGET_OWNER=''
 TARGET_NAME=''
-AUTH_USER=''
+TARGET_USER=''
 SOURCE_USER=''
 SOURCE_AUTH=''
 TARGET_AUTH=''
@@ -35,18 +34,14 @@ closing() { [[ "$QUIET" -eq 1 ]] || printf '\n%s\n' "$*"; }
 ok() { out "  ok  $1"; }
 warn() { out "  !!  $*"; }
 info() { out "  i   $*"; }
-step_cmd() { [[ "$VERBOSE" -eq 1 ]] && info "$*" || true; }
 target_slug() { printf '%s/%s' "$TARGET_OWNER" "$TARGET_NAME"; }
 
-# Fold captured child stderr into one error: line. With -v, print raw stderr first.
+# Fold captured child stderr into one error: line.
 # Visible line: one sentence (+ optional reason/action). No colon after "error:".
 die_from_cmd() {
   local lead="$1" errf="$2" hint="${3:-}" raw msg
   raw="$(cat "$errf" 2>/dev/null || true)"
   rm -f "$errf"
-  if [[ "$VERBOSE" -eq 1 && -n "$raw" ]]; then
-    printf '%s\n' "$raw" >&2
-  fi
   msg="$(printf '%s\n' "$raw" | sed -n -e 's/^gh: //p' -e 's/^fatal: //p' -e 's/^curl: //p' | head -n 1)"
   if [[ -z "$msg" ]]; then
     msg="$(printf '%s\n' "$raw" | sed -n 's/.*"message"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' | head -n 1)"
@@ -96,7 +91,6 @@ Options:
   -n, --dry-run       Show plan; change nothing
   -y, --yes           Skip confirmation prompt
   -q, --quiet         Hide non-error stdout
-  -v, --verbose       Show the command under each plan step
   -h, --help          Show this help and exit
 
 Examples:
@@ -222,6 +216,21 @@ json_permissions_admin() {
     | head -n 1
 }
 
+# JSON string (quoted). jq when available; else escape \ " and controls.
+json_str_encode() {
+  local s="$1"
+  if [[ "$HAVE_JQ" -eq 1 ]]; then
+    jq -n --arg s "$s" '$s'
+    return 0
+  fi
+  s="${s//\\/\\\\}"
+  s="${s//\"/\\\"}"
+  s="${s//$'\n'/\\n}"
+  s="${s//$'\r'/\\r}"
+  s="${s//$'\t'/\\t}"
+  printf '"%s"' "$s"
+}
+
 api_login() {
   local token="$1" json login
   json="$(api_request "$token" GET user 2>/dev/null)" || return 1
@@ -246,8 +255,20 @@ git_auth() {
 git_source() { GIT_AUTH_TOKEN="$SOURCE_AUTH" git_auth "$@"; }
 git_target() { GIT_AUTH_TOKEN="$TARGET_AUTH" git_auth "$@"; }
 
+require_owner_name() {
+  [[ "$1" =~ ^[A-Za-z0-9]([A-Za-z0-9-]*[A-Za-z0-9])?$ ]] \
+    || usage_die "$1 is not a valid owner name."
+}
+
+require_repo_name() {
+  [[ "$1" =~ ^[A-Za-z0-9._-]+$ ]] \
+    || usage_die "$1 is not a valid repository name."
+}
+
 require_owner_repo() {
   [[ "$1" =~ ^[^/]+/[^/]+$ ]] || usage_die "$1 must be owner/repo."
+  require_owner_name "${1%%/*}"
+  require_repo_name "${1#*/}"
 }
 
 parse_args() {
@@ -258,7 +279,6 @@ parse_args() {
       -n|--dry-run) DRY_RUN=1; shift ;;
       -y|--yes) YES=1; shift ;;
       -q|--quiet) QUIET=1; shift ;;
-      -v|--verbose) VERBOSE=1; shift ;;
       --mirror)
         [[ "$MODE" == transfer ]] || usage_die "--mirror and --single-commit are mutually exclusive."
         MODE=mirror; shift ;;
@@ -287,6 +307,7 @@ parse_args() {
       TARGET_NAME="${target#*/}"
     else
       [[ -n "$target" ]] || usage_die "Invalid target-owner."
+      require_owner_name "$target"
       TARGET_OWNER="$target"
     fi
   fi
@@ -308,18 +329,6 @@ ensure_tools() {
   HAVE_JQ=0
   command -v gh >/dev/null 2>&1 && HAVE_GH=1
   command -v jq >/dev/null 2>&1 && HAVE_JQ=1
-  if [[ "$VERBOSE" -eq 1 ]]; then
-    if [[ "$HAVE_GH" -eq 1 ]]; then
-      info "optional: gh (credential source)"
-    else
-      info "optional: gh not found"
-    fi
-    if [[ "$HAVE_JQ" -eq 1 ]]; then
-      info "optional: jq (JSON)"
-    else
-      info "optional: jq not found (sed fallback)"
-    fi
-  fi
 }
 
 ensure_tools_and_auth() {
@@ -329,10 +338,10 @@ ensure_tools_and_auth() {
   TARGET_AUTH="$(resolve_side_token TARGET "${TARGET_TOKEN:-}")" || exit 1
 
   SOURCE_USER="$(api_login "$SOURCE_AUTH" 2>/dev/null || true)"
-  AUTH_USER="$(api_login "$TARGET_AUTH" 2>/dev/null || true)"
+  TARGET_USER="$(api_login "$TARGET_AUTH" 2>/dev/null || true)"
   if [[ -z "$TARGET_OWNER" ]]; then
-    [[ -n "$AUTH_USER" ]] || die "Could not resolve the TARGET user. Set <target-owner>."
-    TARGET_OWNER="$AUTH_USER"
+    [[ -n "$TARGET_USER" ]] || die "Could not resolve the TARGET user. Set <target-owner>."
+    TARGET_OWNER="$TARGET_USER"
   fi
 }
 
@@ -451,22 +460,22 @@ print_plan() {
       out "  2. Wait until ${target} is reachable (up to 60s)"
       ;;
     mirror)
-      out "  ${i}. Mirror-clone ${SOURCE}"; i=$((i + 1))
-      out "  ${i}. Drop refs/pull/*"; i=$((i + 1))
+      out "  ${i}. Copy all refs from ${SOURCE}"; i=$((i + 1))
+      out "  ${i}. Drop pull-request refs"; i=$((i + 1))
       plan_create_or_reuse "$i"; i=$((i + 1))
       if ((${#BRANCHES[@]} > 0)); then
         out "  ${i}. Push branches: ${BRANCHES[*]}$([[ $NO_TAGS -eq 0 ]] && printf ' + all tags')"
         [[ $NO_TAGS -eq 0 ]] && info "--branch still pushes all tags unless --no-tags"
       elif [[ "$NO_TAGS" -eq 1 ]]; then
-        out "  ${i}. Push all heads (no tags)"
+        out "  ${i}. Push all branches (no tags)"
       else
-        out "  ${i}. Push --mirror"
+        out "  ${i}. Push all refs"
       fi
       out "Note: issues, PRs, releases, wiki, settings, and LFS objects do not move."
       ;;
     single-commit)
-      out "  ${i}. Shallow-clone default branch of ${SOURCE}"; i=$((i + 1))
-      out "  ${i}. commit-tree HEAD^{tree} on ${SOURCE_DEFAULT_BRANCH}"; i=$((i + 1))
+      out "  ${i}. Copy the default branch of ${SOURCE}"; i=$((i + 1))
+      out "  ${i}. Rebuild ${SOURCE_DEFAULT_BRANCH} as one commit"; i=$((i + 1))
       plan_create_or_reuse "$i"; i=$((i + 1))
       out "  ${i}. Push ${SOURCE_DEFAULT_BRANCH}"
       out "Note: history, issues, PRs, releases, wiki, and settings do not move."
@@ -492,10 +501,10 @@ ensure_target_repo() {
   rm -f "$errf"
   owner_type="$(json_str "$body" type)"
   [[ "$TARGET_VISIBILITY" == private ]] && private_json=true || private_json=false
-  body="$(printf '{"name":"%s","private":%s}' "$TARGET_NAME" "$private_json")"
+  body="$(printf '{"name":%s,"private":%s}' "$(json_str_encode "$TARGET_NAME")" "$private_json")"
   if [[ "$owner_type" == Organization ]]; then
     path="orgs/${TARGET_OWNER}/repos"
-  elif [[ "$owner_type" == User && -n "$AUTH_USER" && "$TARGET_OWNER" == "$AUTH_USER" ]]; then
+  elif [[ "$owner_type" == User && -n "$TARGET_USER" && "$TARGET_OWNER" == "$TARGET_USER" ]]; then
     path="user/repos"
   else
     die "cannot create ${target} because the TARGET credentials could not be confirmed for ${TARGET_OWNER}."
@@ -522,9 +531,10 @@ do_transfer() {
   owner_type="$(json_str "$body" type)"
 
   if [[ "$TARGET_NAME" != "${SOURCE#*/}" ]]; then
-    body="$(printf '{"new_owner":"%s","new_name":"%s"}' "$TARGET_OWNER" "$TARGET_NAME")"
+    body="$(printf '{"new_owner":%s,"new_name":%s}' \
+      "$(json_str_encode "$TARGET_OWNER")" "$(json_str_encode "$TARGET_NAME")")"
   else
-    body="$(printf '{"new_owner":"%s"}' "$TARGET_OWNER")"
+    body="$(printf '{"new_owner":%s}' "$(json_str_encode "$TARGET_OWNER")")"
   fi
   errf="$(mktemp)"
   if ! api_request "$SOURCE_AUTH" POST "repos/${SOURCE}/transfer" "$body" >/dev/null 2>"$errf"; then
@@ -690,8 +700,8 @@ main() {
   parse_args "$@"
   ensure_tools_and_auth
   header
-  if [[ -n "$SOURCE_USER" && -n "$AUTH_USER" ]]; then
-    ok "authenticated (SOURCE: ${SOURCE_USER}, TARGET: ${AUTH_USER})"
+  if [[ -n "$SOURCE_USER" && -n "$TARGET_USER" ]]; then
+    ok "authenticated (SOURCE: ${SOURCE_USER}, TARGET: ${TARGET_USER})"
   else
     ok "authenticated"
   fi

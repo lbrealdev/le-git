@@ -48,3 +48,6 @@ jobs:
 
       - name: gh-repo-migrate check-target (offline)
         run: ./scripts/gh-repo-migrate-check-target-test.sh
+
+      - name: gh-repo-migrate cleanup (offline)
+        run: ./scripts/gh-repo-migrate-cleanup-test.sh
