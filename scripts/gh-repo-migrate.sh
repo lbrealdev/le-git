@@ -16,6 +16,9 @@ TARGET_USER=''
 SOURCE_USER=''
 SOURCE_AUTH=''
 TARGET_AUTH=''
+AUTH_MODE=''
+SOURCE_AUTH_FROM=''
+TARGET_AUTH_FROM=''
 SOURCE_VISIBILITY=''
 SOURCE_DEFAULT_BRANCH=''
 TARGET_EXISTS=0
@@ -77,7 +80,10 @@ print_help() {
 Usage: gh-repo-migrate.sh <owner/repo> [<target-owner>[/<name>]] [options]
 
 Move a GitHub repository to another owner (transfer, mirror, or single commit).
-Auth: SOURCE_TOKEN/TARGET_TOKEN, else GH_TOKEN, else GITHUB_TOKEN, else gh.
+Auth: SOURCE_TOKEN and TARGET_TOKEN (both, or only SOURCE for transfer),
+or one shared token from GH_TOKEN, GITHUB_TOKEN or gh. The two are never
+mixed. Transfer needs a classic PAT or the gh token; a fine-grained
+token cannot transfer a repository.
 
 Modes:
   (default)           Native transfer (requires admin on the source)
@@ -102,30 +108,86 @@ Examples:
 EOF
 }
 
-# Resolve once: side-specific token, then GH_TOKEN, GITHUB_TOKEN, then gh auth token.
-resolve_side_token() {
-  local side="$1" specific="${2:-}"
-  if [[ -n "$specific" ]]; then
-    printf '%s' "$specific"
-    return 0
-  fi
-  if [[ -n "${GH_TOKEN:-}" ]]; then
-    printf '%s' "$GH_TOKEN"
-    return 0
-  fi
-  if [[ -n "${GITHUB_TOKEN:-}" ]]; then
-    printf '%s' "$GITHUB_TOKEN"
-    return 0
-  fi
-  if [[ "$HAVE_GH" -eq 1 ]]; then
-    local tok
-    if tok="$(gh auth token 2>/dev/null)" && [[ -n "$tok" ]]; then
-      printf '%s' "$tok"
-      return 0
+need_side_token() {
+  local missing="$1" other="$2"
+  err "${missing} is not set; per-side mode needs both. Set it, or unset ${other} to use one shared token."
+  exit 2
+}
+
+require_login() {
+  local side="$1" token="$2" login
+  login="$(api_login "$token" 2>/dev/null)" \
+    || die "${side} token did not resolve to a login."
+  [[ -n "$login" && "$login" != null ]] \
+    || die "${side} token did not resolve to a login."
+  printf '%s' "$login"
+}
+
+# One mode per run: per-side (SOURCE_TOKEN / TARGET_TOKEN only) or shared.
+resolve_auth() {
+  local tok='' from=''
+  if [[ -n "${SOURCE_TOKEN:-}" || -n "${TARGET_TOKEN:-}" ]]; then
+    AUTH_MODE=per-side
+    [[ -z "${GH_TOKEN:-}" ]] || warn "GH_TOKEN ignored"
+    [[ -z "${GITHUB_TOKEN:-}" ]] || warn "GITHUB_TOKEN ignored"
+    if [[ "$MODE" == transfer ]]; then
+      [[ -n "${SOURCE_TOKEN:-}" ]] || need_side_token SOURCE_TOKEN TARGET_TOKEN
+      SOURCE_AUTH="$SOURCE_TOKEN"
+      SOURCE_AUTH_FROM=SOURCE_TOKEN
+      TARGET_AUTH="$SOURCE_TOKEN"
+      TARGET_AUTH_FROM=SOURCE_TOKEN
+      [[ -z "${TARGET_TOKEN:-}" ]] || warn "TARGET_TOKEN is not used by transfer"
+    else
+      [[ -n "${SOURCE_TOKEN:-}" ]] || need_side_token SOURCE_TOKEN TARGET_TOKEN
+      [[ -n "${TARGET_TOKEN:-}" ]] || need_side_token TARGET_TOKEN SOURCE_TOKEN
+      SOURCE_AUTH="$SOURCE_TOKEN"
+      SOURCE_AUTH_FROM=SOURCE_TOKEN
+      TARGET_AUTH="$TARGET_TOKEN"
+      TARGET_AUTH_FROM=TARGET_TOKEN
     fi
+  else
+    AUTH_MODE=shared
+    if [[ -n "${GH_TOKEN:-}" ]]; then
+      tok="$GH_TOKEN"
+      from=GH_TOKEN
+    elif [[ -n "${GITHUB_TOKEN:-}" ]]; then
+      tok="$GITHUB_TOKEN"
+      from=GITHUB_TOKEN
+    elif [[ "$HAVE_GH" -eq 1 ]] && tok="$(gh auth token 2>/dev/null)" && [[ -n "$tok" ]]; then
+      from=gh
+    else
+      die "no credentials. Set GH_TOKEN or GITHUB_TOKEN, or log in with gh."
+    fi
+    SOURCE_AUTH="$tok"
+    TARGET_AUTH="$tok"
+    SOURCE_AUTH_FROM="$from"
+    TARGET_AUTH_FROM="$from"
   fi
-  err "no credentials for ${side}. Set ${side}_TOKEN or log in with gh."
-  return 1
+
+  SOURCE_USER="$(require_login SOURCE "$SOURCE_AUTH")"
+  if [[ "$MODE" != transfer ]]; then
+    TARGET_USER="$(require_login TARGET "$TARGET_AUTH")"
+  fi
+  if [[ -z "$TARGET_OWNER" ]]; then
+    if [[ "$MODE" == transfer ]]; then
+      die "Could not resolve the TARGET user. Set <target-owner>."
+    fi
+    [[ -n "$TARGET_USER" ]] || die "Could not resolve the TARGET user. Set <target-owner>."
+    TARGET_OWNER="$TARGET_USER"
+  fi
+  if [[ -n "$SOURCE_USER" && -n "$TARGET_USER" && "$SOURCE_USER" == "$TARGET_USER" ]]; then
+    info "SOURCE and TARGET are the same login (${SOURCE_USER})"
+  fi
+}
+
+print_auth() {
+  out "Auth (${AUTH_MODE}):"
+  out "  source  ${SOURCE_USER}  via ${SOURCE_AUTH_FROM}"
+  if [[ "$MODE" == transfer ]]; then
+    out "  target  (not used: transfer runs as source)"
+  else
+    out "  target  ${TARGET_USER}  via ${TARGET_AUTH_FROM}"
+  fi
 }
 
 # GitHub REST via curl. Auth header via --config on stdin (never argv or disk).
@@ -339,16 +401,7 @@ ensure_tools() {
 
 ensure_tools_and_auth() {
   ensure_tools
-
-  SOURCE_AUTH="$(resolve_side_token SOURCE "${SOURCE_TOKEN:-}")" || exit 1
-  TARGET_AUTH="$(resolve_side_token TARGET "${TARGET_TOKEN:-}")" || exit 1
-
-  SOURCE_USER="$(api_login "$SOURCE_AUTH" 2>/dev/null || true)"
-  TARGET_USER="$(api_login "$TARGET_AUTH" 2>/dev/null || true)"
-  if [[ -z "$TARGET_OWNER" ]]; then
-    [[ -n "$TARGET_USER" ]] || die "Could not resolve the TARGET user. Set <target-owner>."
-    TARGET_OWNER="$TARGET_USER"
-  fi
+  resolve_auth
 }
 
 confirm() {
@@ -719,11 +772,6 @@ main() {
   parse_args "$@"
   ensure_tools_and_auth
   header
-  if [[ -n "$SOURCE_USER" && -n "$TARGET_USER" ]]; then
-    ok "authenticated (SOURCE: ${SOURCE_USER}, TARGET: ${TARGET_USER})"
-  else
-    ok "authenticated"
-  fi
 
   source_meta
   if [[ "$(target_slug)" == "$SOURCE" ]]; then
@@ -734,6 +782,7 @@ main() {
     die "$(target_slug) already exists."
   fi
 
+  print_auth
   print_plan
   if [[ "$DRY_RUN" -eq 1 ]]; then
     closing "Dry run: nothing changed."

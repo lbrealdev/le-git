@@ -54,3 +54,6 @@ jobs:
 
       - name: gh-repo-migrate identity (offline)
         run: ./scripts/gh-repo-migrate-identity-test.sh
+
+      - name: gh-repo-migrate auth (offline)
+        run: ./scripts/gh-repo-migrate-auth-test.sh

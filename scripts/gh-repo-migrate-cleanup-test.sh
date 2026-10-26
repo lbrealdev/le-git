@@ -219,8 +219,12 @@ main() {
   if grep -Fq 'Shallow-clone' "$stdoutf"; then
     die "plan still mentions Shallow-clone"
   fi
-  grep -Fq 'authenticated (SOURCE: alice, TARGET: alice)' "$stdoutf" \
-    || die "authenticated line does not use TARGET login"
+  grep -Fq 'Auth (per-side):' "$stdoutf" \
+    || die "missing Auth (per-side) header"
+  grep -Fq 'source  alice  via SOURCE_TOKEN' "$stdoutf" \
+    || die "Auth header missing SOURCE login"
+  grep -Fq 'target  alice  via TARGET_TOKEN' "$stdoutf" \
+    || die "Auth header missing TARGET login"
 
   set +e
   run_cmd "$stdoutf" "$stderrf" acme/widget new-co -y

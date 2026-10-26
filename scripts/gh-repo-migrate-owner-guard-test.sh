@@ -232,8 +232,9 @@ main() {
   stdoutf="${testdir}/stdout"
   stderrf="${testdir}/stderr"
 
-  # (a) Unresolved SOURCE login + personal target: accept path, do not poll out.
-  export GH_REPO_MIGRATE_TEST_USER_FAIL=1
+  # (a) Personal target whose login differs from SOURCE: accept path, do not poll.
+  export GH_REPO_MIGRATE_TEST_USER_FAIL=0
+  export GH_REPO_MIGRATE_TEST_USER_JSON='{"login":"alice"}'
   export GH_REPO_MIGRATE_TEST_OWNER_JSON='{"login":"new-co","type":"User"}'
   unset GH_REPO_MIGRATE_TEST_ALLOW_USER_REPOS || true
   set +e
