@@ -647,18 +647,18 @@ do_single() {
   target="$(target_slug)"
   TMPDIR_PATH="$(mktemp -d)"
   trap cleanup EXIT
-  source_dir="${TMPDIR_PATH}/source"
+  source_dir="${TMPDIR_PATH}/source.git"
   out "  Cloning ${SOURCE} ..."
   errf="$(mktemp)"
-  if ! git_source clone --depth 1 --branch "$SOURCE_DEFAULT_BRANCH" \
+  if ! git_source clone --bare --depth 1 --branch "$SOURCE_DEFAULT_BRANCH" \
     "https://github.com/${SOURCE}.git" "$source_dir" 2>"$errf"; then
     die_from_cmd "Clone of ${SOURCE} failed" "$errf"
   fi
   rm -f "$errf"
-  if [[ -f "${source_dir}/.gitmodules" ]]; then
+  if git -C "$source_dir" show HEAD:.gitmodules >/dev/null 2>&1; then
     warn ".gitmodules present; submodules are not initialized"
   fi
-  attrs="$(cat "${source_dir}/.gitattributes" 2>/dev/null || true)"
+  attrs="$(git -C "$source_dir" show HEAD:.gitattributes 2>/dev/null || true)"
   if [[ "$attrs" == *filter=lfs* ]]; then
     warn ".gitattributes uses filter=lfs; LFS objects are not copied"
   fi
