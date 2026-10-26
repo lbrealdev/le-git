@@ -39,3 +39,6 @@ jobs:
             exit 0
           fi
           shellcheck -x --severity=warning "${files[@]}"
+
+      - name: gh-repo-migrate single-commit (offline)
+        run: ./scripts/gh-repo-migrate-single-commit-test.sh
