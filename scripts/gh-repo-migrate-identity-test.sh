@@ -116,12 +116,20 @@ setup_repos() {
   "$real_git" init --bare "${github_root}/new-co/widget.git"
 }
 
+# Host TZ is not UTC. Dates must still be stored/shown as UTC (Z or +00:00).
+TEST_TZ=America/New_York
+
+is_utc_stamp() {
+  [[ "$1" =~ (Z|[+]00:?00)$ ]]
+}
+
 run_migrate() {
   local stdoutf="$1" stderrf="$2"
   shift 2
   env \
     -u GH_TOKEN \
     -u GITHUB_TOKEN \
+    TZ="$TEST_TZ" \
     PATH="${testdir}/bin:${PATH}" \
     TMPDIR="${testdir}/watch-tmp" \
     SOURCE_TOKEN=test-source-token \
@@ -205,18 +213,18 @@ main() {
   grep -Fq 'gh-repo-migrate <gh-repo-migrate@users.noreply.github.com>' "$stdoutf" \
     || die "plan does not show the neutral identity"
 
-  an="$("$real_git" -C "${github_root}/new-co/widget.git" log -1 --format='%an')"
-  ae="$("$real_git" -C "${github_root}/new-co/widget.git" log -1 --format='%ae')"
-  cn="$("$real_git" -C "${github_root}/new-co/widget.git" log -1 --format='%cn')"
-  ce="$("$real_git" -C "${github_root}/new-co/widget.git" log -1 --format='%ce')"
-  ad="$("$real_git" -C "${github_root}/new-co/widget.git" log -1 --format='%aI')"
-  cd="$("$real_git" -C "${github_root}/new-co/widget.git" log -1 --format='%cI')"
+  an="$(TZ="$TEST_TZ" "$real_git" -C "${github_root}/new-co/widget.git" log -1 --format='%an')"
+  ae="$(TZ="$TEST_TZ" "$real_git" -C "${github_root}/new-co/widget.git" log -1 --format='%ae')"
+  cn="$(TZ="$TEST_TZ" "$real_git" -C "${github_root}/new-co/widget.git" log -1 --format='%cn')"
+  ce="$(TZ="$TEST_TZ" "$real_git" -C "${github_root}/new-co/widget.git" log -1 --format='%ce')"
+  ad="$(TZ="$TEST_TZ" "$real_git" -C "${github_root}/new-co/widget.git" log -1 --format='%aI')"
+  cd="$(TZ="$TEST_TZ" "$real_git" -C "${github_root}/new-co/widget.git" log -1 --format='%cI')"
   [[ "$an" == gh-repo-migrate ]] || die "author name is ${an}"
   [[ "$ae" == gh-repo-migrate@users.noreply.github.com ]] || die "author email is ${ae}"
   [[ "$cn" == gh-repo-migrate ]] || die "committer name is ${cn}"
   [[ "$ce" == gh-repo-migrate@users.noreply.github.com ]] || die "committer email is ${ce}"
-  [[ "$ad" == *+00:00 ]] || die "author date is not UTC (${ad})"
-  [[ "$cd" == *+00:00 ]] || die "committer date is not UTC (${cd})"
+  is_utc_stamp "$ad" || die "author date is not UTC (${ad})"
+  is_utc_stamp "$cd" || die "committer date is not UTC (${cd})"
 
   "$real_git" -C "${github_root}/new-co/widget.git" update-ref -d HEAD
   "$real_git" -C "${github_root}/new-co/widget.git" update-ref -d refs/heads/main || true
