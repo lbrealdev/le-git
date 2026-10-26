@@ -400,16 +400,17 @@ check_target() {
     fi
     die "${target} already exists and is not empty."
   fi
+  if grep -qE 'HTTP 404' "$errf"; then
+    rm -f "$errf"
+    TARGET_EXISTS=0
+    ok "target ${target} is free"
+    return 0
+  fi
   if grep -qiE 'HTTP 403|HTTP 401|Bad credentials' "$errf"; then
     rm -f "$errf"
     die_repo_inaccessible "$target"
   fi
-  if grep -qiE 'rate limit' "$errf"; then
-    die_from_cmd "Rate limit hit while checking ${target}" "$errf"
-  fi
-  rm -f "$errf"
-  TARGET_EXISTS=0
-  ok "target ${target} is free"
+  die_from_cmd "Could not check ${target}" "$errf"
 }
 
 cleanup() { [[ -n "${TMPDIR_PATH}" && -d "${TMPDIR_PATH}" ]] && rm -rf "${TMPDIR_PATH}"; }

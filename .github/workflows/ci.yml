@@ -45,3 +45,6 @@ jobs:
 
       - name: gh-repo-migrate owner guard (offline)
         run: ./scripts/gh-repo-migrate-owner-guard-test.sh
+
+      - name: gh-repo-migrate check-target (offline)
+        run: ./scripts/gh-repo-migrate-check-target-test.sh
