@@ -10,7 +10,7 @@ Self-hosted runner cleanup (destructive; inspect before running):
 ### Guides
 
 - [Github Actions Workflows](github_actions_workflows.md)
-- [Github Actions - self-hosted runners](github_actions_self_hosted_runner.md)
+- [Github Actions - self-hosted runners](github_actions_self_hosted_runner.md) — JIT registration model by plan tier, the label-replacement defect, bounded cycles, the subshell orphan trap, and why the runner image is not a toolbox.
 
 ### GitHub Actions Labs
 
