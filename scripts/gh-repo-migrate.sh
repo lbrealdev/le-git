@@ -67,7 +67,7 @@ die_from_cmd() {
     msg="$(printf '%s\n' "$raw" | sed '/^$/d' | head -n 1)"
   fi
   # Plain words only: drop HTTP prefixes and colons so we never emit "error: a: b".
-  msg="$(printf '%s\n' "$msg" | sed -E 's/^HTTP [0-9]+[[:space:]]*:[[:space:]]*//; s/\. \((HTTP\)/ \1/; s/: / /g')"
+  msg="$(printf '%s\n' "$msg" | sed -E 's/^HTTP [0-9]+[[:space:]]*:[[:space:]]*//; s/\. \((HTTP)/ \1/; s/: / /g')"
   msg="${msg%.}"
   if [[ -n "$msg" && -n "$hint" ]]; then
     die "${lead}. ${msg}. ${hint}"
@@ -125,9 +125,12 @@ need_side_token() {
 }
 
 require_login() {
-  local side="$1" token="$2" login
-  login="$(api_login "$token" 2>/dev/null)" \
-    || die "${side} token did not resolve to a login."
+  local side="$1" token="$2" login errf
+  errf="$(mktemp)"
+  if ! login="$(api_login "$token" 2>"$errf")"; then
+    die_from_cmd "${side} token did not resolve to a login" "$errf"
+  fi
+  rm -f "$errf"
   [[ -n "$login" && "$login" != null ]] \
     || die "${side} token did not resolve to a login."
   printf '%s' "$login"
@@ -325,9 +328,12 @@ json_str_encode() {
 
 api_login() {
   local token="$1" json login
-  json="$(api_request "$token" GET user 2>/dev/null)" || return 1
+  json="$(api_request "$token" GET user)" || return 1
   login="$(json_str "$json" login)"
-  [[ -n "$login" && "$login" != null ]] || return 1
+  if [[ -z "$login" || "$login" == null ]]; then
+    printf 'no login in /user response\n' >&2
+    return 1
+  fi
   printf '%s' "$login"
 }
 
@@ -424,7 +430,10 @@ ensure_tools() {
   HAVE_GH=0
   HAVE_JQ=0
   command -v gh >/dev/null 2>&1 && HAVE_GH=1
-  command -v jq >/dev/null 2>&1 && HAVE_JQ=1
+  # Probe: a broken jq (e.g. a mise shim without trust) must fall back to sed.
+  if command -v jq >/dev/null 2>&1 && jq -n . >/dev/null 2>&1; then
+    HAVE_JQ=1
+  fi
 }
 
 ensure_tools_and_auth() {
